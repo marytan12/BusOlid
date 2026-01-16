@@ -2734,10 +2734,8 @@
                 return;
             }
 
-            // Enter Focus Mode: Remove stops to reduce noise
-            if (markerClusterGroup) {
-                map.removeLayer(markerClusterGroup);
-            }
+            // Show Loading State immediately
+            showBusTrackingInfo({ velocidad: 0 }, line, true);
 
             // Clear previous tracking and route
             if (busTrackingLayer) {
@@ -2756,26 +2754,24 @@
             // Close preview to show map
             closeStopPreview();
 
-            // Draw Route (OPAQUE)
-            try {
-                const routeResponse = await fetch(`https://gtfs.vallabus.com/v2/geojson/${tripId}`);
-                const routeData = await routeResponse.json();
-
-                if (routeData) {
-                    const routeColor = getLineColor(line) || '#10b981';
-                    busRouteLayer = L.geoJSON(routeData, {
-                        style: {
-                            color: routeColor,
-                            weight: 6, // Thicker
-                            opacity: 1, // OPAQUE
-                            lineCap: 'round',
-                            lineJoin: 'round'
-                        }
-                    }).addTo(map);
-                }
-            } catch (e) {
-                console.error("Error fetching bus route", e);
-            }
+            // Draw Route (OPAQUE) - Async but don't wait to start checking position
+            fetch(`https://gtfs.vallabus.com/v2/geojson/${tripId}`)
+                .then(r => r.json())
+                .then(routeData => {
+                    if (routeData && !busTrackingInterval) { // Only add if we haven't cancelled
+                        const routeColor = getLineColor(line) || '#10b981';
+                        busRouteLayer = L.geoJSON(routeData, {
+                            style: {
+                                color: routeColor,
+                                weight: 6,
+                                opacity: 1,
+                                lineCap: 'round',
+                                lineJoin: 'round'
+                            }
+                        }).addTo(map);
+                    }
+                })
+                .catch(e => console.error("Error route", e));
 
             const updatePosition = async () => {
                 try {
@@ -2786,6 +2782,14 @@
                         const bus = data[0];
                         const lat = bus.latitud;
                         const lng = bus.longitud;
+
+                        // SUCCESS: We have data. Now we can safely enter Focus Mode
+                        if (markerClusterGroup && map.hasLayer(markerClusterGroup)) {
+                            map.removeLayer(markerClusterGroup);
+                        }
+
+                        // Update Info Card with real data
+                        showBusTrackingInfo(bus, line, false);
 
                         // Remove old marker
                         if (busTrackingLayer) map.removeLayer(busTrackingLayer);
@@ -2805,24 +2809,47 @@
 
                         busTrackingLayer = L.marker([lat, lng], { icon: busIcon }).addTo(map);
 
-                        // Interaction: Click to show "Stop Tracking" option
+                        // Interaction: Click to recenter/show info if closed (though we keep it open now)
                         busTrackingLayer.on('click', () => {
-                            showBusTrackingInfo(bus, line);
+                            showBusTrackingInfo(bus, line, false);
                         });
 
                         // Slide map to follow bus smoothly
                         map.panTo([lat, lng], { animate: true, duration: 1.5 });
+                    } else {
+                        // NO DATA received (and it's the first check or subsequent)
+                        // If it's the very first check (no interval yet), warn and exit
+                        if (!busTrackingInterval) {
+                            alert("No se ha podido localizar el autobús en este momento.");
+                            stopTrackingBus();
+                        }
                     }
                 } catch (e) {
                     console.error("Error tracking bus", e);
+                    if (!busTrackingInterval) {
+                        alert("Error de conexión al rastrear el autobús.");
+                        stopTrackingBus();
+                    }
                 }
             };
 
             // First update
             await updatePosition();
 
+            // Should initiate interval only if we didn't fail
+            // We check busTrackingLayer presence as proxy for success, or just always start to retry?
+            // Safer to retry if we got past the first check without crashing, but let's check
+            // Actually, updatePosition sets busTrackingLayer. 
+            // If first update failed, we called stopTrackingBus, so we shouldn't start interval.
+            // We can check a flag or just if preview card is still open?
+            // Simplest: If preview card is visible, continue.
+
             // Auto update every 3s for real-time feel
-            busTrackingInterval = setInterval(updatePosition, 3000);
+            // Only start if not already stopped
+            const previewCard = document.getElementById('stop-preview-card');
+            if (previewCard.classList.contains('visible')) {
+                busTrackingInterval = setInterval(updatePosition, 3000);
+            }
 
             // Stop tracking if map is clicked (optional, but good for UX)
             // Modified: Clicking map doesn't stop tracking in Focus Mode, must click "Stop Tracking"
@@ -2832,10 +2859,14 @@
         }
 
         // Show Bus Tracking Info Card
-        function showBusTrackingInfo(bus, line) {
+        function showBusTrackingInfo(bus, line, isLoading) {
             const previewCard = document.getElementById('stop-preview-card');
             const previewContent = document.getElementById('preview-content');
             const color = getLineColor(line) || '#10b981';
+
+            let statusText = isLoading ? "Localizando..." : "Siguiendo Autobús";
+            let speedText = isLoading ? '<div class="loader"></div>' : `${Math.round(bus.velocidad || 0)} km/h`;
+            let iconColor = isLoading ? '#94a3b8' : 'white';
 
             previewContent.innerHTML = `
                 <div style="padding: 10px;">
@@ -2843,14 +2874,14 @@
                          <div style="display:flex; align-items:center; gap:16px;">
                              <span style="font-size:28px; font-weight:800; color:white; background:${color}; width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">${line}</span>
                              <div>
-                                 <div style="font-size:20px; font-weight:700;">Siguiendo Autobús</div>
+                                 <div style="font-size:20px; font-weight:700;">${statusText}</div>
                                  <div style="font-size:15px; opacity:0.75; display:flex; align-items:center; gap:6px;">
-                                    <i data-lucide="gauge" style="width:16px; height:16px"></i> 
-                                    ${Math.round(bus.velocidad || 0)} km/h
+                                    ${isLoading ? 'Conectando con satélite...' : `<i data-lucide="gauge" style="width:16px; height:16px"></i> ${speedText}`}
                                  </div>
                              </div>
                          </div>
-                         <button onclick="closeStopPreview()" style="background:rgba(255,255,255,0.1); border:none; padding:8px; border-radius:50%;">
+                         <!-- Close button acts as Stop Tracking too -->
+                         <button onclick="stopTrackingBus()" style="background:rgba(255,255,255,0.1); border:none; padding:8px; border-radius:50%;">
                              <i data-lucide="x" style="width:24px; height:24px; color:white"></i>
                          </button>
                      </div>
@@ -2864,7 +2895,7 @@
 
             previewCard.classList.add('visible');
             document.querySelector('.bottom-nav').classList.add('merged');
-            lucide.createIcons();
+            if (!isLoading) lucide.createIcons();
         }
 
         // Stop Tracking and Restore Map
@@ -2883,14 +2914,14 @@
             }
 
             // Restore Stops
-            if (markerClusterGroup) {
+            if (markerClusterGroup && !map.hasLayer(markerClusterGroup)) {
                 map.addLayer(markerClusterGroup);
             }
 
             closeStopPreview();
 
             // Optionally zoom out a bit to show context
-            map.setZoom(map.getZoom() - 1);
+            // map.setZoom(map.getZoom() - 1);
         }
 
         // Fly to Stop
