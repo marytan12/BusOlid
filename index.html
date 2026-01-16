@@ -978,6 +978,17 @@
                         const occupancy = line.realtime && line.realtime[0] ?
                             vallaBusAPI.formatOccupancy(line.realtime[0].ocupacion) : '';
 
+                        // If more than 30 minutes, show time instead of minutes
+                        let timeDisplay;
+                        if (minutesRemaining > 30) {
+                            const arrivalTime = new Date(nextArrival.fechaHoraLlegada);
+                            const hours = arrivalTime.getHours().toString().padStart(2, '0');
+                            const mins = arrivalTime.getMinutes().toString().padStart(2, '0');
+                            timeDisplay = `${hours}:${mins}`;
+                        } else {
+                            timeDisplay = `${minutesRemaining} min`;
+                        }
+
                         linesHtml += `
                             <div class="bus-line-item">
                                 <div class="bus-line-header">
@@ -985,7 +996,7 @@
                                         <span class="bus-line-number">${line.linea}</span>
                                     </div>
                                     <div class="bus-arrival-time ${urgentClass}">
-                                        ${minutesRemaining} min
+                                        ${timeDisplay}
                                     </div>
                                 </div>
                                 <div class="bus-destination">${line.destino || nextArrival.destino}</div>
