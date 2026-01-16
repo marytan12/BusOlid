@@ -263,7 +263,7 @@
             display: none !important;
         }
 
-        /* Bus Stop Markers - Liquid Glass Style */
+        /* Bus Stop Markers - Modern Icon Style */
         .custom-div-icon {
             background: transparent;
             border: none;
@@ -271,51 +271,132 @@
 
         .glass-marker {
             position: relative;
-            width: 20px;
-            height: 20px;
+            width: 28px;
+            height: 28px;
         }
 
         .bus-stop-marker {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 700;
             font-size: 12px;
-            background: linear-gradient(135deg, var(--color-emerald), #059669);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 3px 8px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            position: relative;
+
+            /* Default AUVASA green */
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .bus-stop-marker.no-buses {
-            background: linear-gradient(135deg, var(--color-red), #dc2626);
-            border-color: rgba(239, 68, 68, 0.8);
-            box-shadow: 0 3px 12px rgba(239, 68, 68, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        .bus-stop-marker::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 2px;
+            opacity: 0.9;
         }
 
-        .bus-stop-marker.few-buses {
-            background: linear-gradient(135deg, var(--color-orange), #ea580c);
-            border-color: rgba(249, 115, 22, 0.8);
-            box-shadow: 0 3px 12px rgba(249, 115, 22, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        .bus-stop-marker::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            width: 14px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 1.5px;
+        }
+
+        /* Arroyo Red Line */
+        .bus-stop-marker.line-red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        }
+
+        /* Blue Line */
+        .bus-stop-marker.line-blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        }
+
+        /* Río Shopping Orange Line */
+        .bus-stop-marker.line-orange {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        }
+
+        /* Mixed lines - gradient combining colors */
+        .bus-stop-marker.line-mixed {
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #f97316 100%);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
         }
 
         .bus-stop-marker.favorite {
-            border: 2px solid rgba(251, 191, 36, 0.9);
-            box-shadow: 0 3px 14px rgba(251, 191, 36, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
-            transform: scale(1.15);
+            border: 3px solid rgba(251, 191, 36, 1);
+            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.8),
+                0 0 0 1px rgba(255, 255, 255, 0.3) inset,
+                0 0 20px rgba(251, 191, 36, 0.4);
+            transform: scale(1.1);
+            animation: favoritePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes favoritePulse {
+
+            0%,
+            100% {
+                transform: scale(1.1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
         }
 
         .bus-stop-marker.favorite::before {
-            content: '⭐';
+            content: '★';
             position: absolute;
-            top: -4px;
-            right: -4px;
-            font-size: 10px;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            top: -8px;
+            right: -8px;
+            font-size: 12px;
+            color: #fbbf24;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            animation: starRotate 3s linear infinite;
+            width: auto;
+            height: auto;
+            background: none;
+            border-radius: 0;
+            opacity: 1;
+        }
+
+        @keyframes starRotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .bus-stop-marker:hover {
+            transform: scale(1.15);
+            z-index: 1000;
         }
 
         /* Popup Styles - Liquid Glass */
@@ -1303,6 +1384,53 @@
             }
         }
 
+        // Determine marker color class based on lines
+        function getMarkerColorClass(lineas) {
+            if (!lineas || lineas.length === 0) return '';
+
+            const lineNames = lineas.map(l => (l.linea || l).toString().toUpperCase());
+
+            let hasRed = false;
+            let hasBlue = false;
+            let hasOrange = false;
+            let hasAuvasa = false;
+
+            lineNames.forEach(line => {
+                // Línea Roja de Arroyo (R)
+                if (line === 'R' || line.includes('ROJA') || line.includes('ARROYO')) {
+                    hasRed = true;
+                }
+                // Línea Azul (A)
+                else if (line === 'A' || line.includes('AZUL')) {
+                    hasBlue = true;
+                }
+                // Línea Río Shopping (RS)
+                else if (line === 'RS' || line.includes('RIO') || line.includes('SHOPPING')) {
+                    hasOrange = true;
+                }
+                // Regular AUVASA lines (numbers)
+                else if (/^\d+$/.test(line)) {
+                    hasAuvasa = true;
+                }
+            });
+
+            // Count how many special lines this stop has
+            const specialCount = [hasRed, hasBlue, hasOrange].filter(Boolean).length;
+
+            // If multiple special lines, use mixed gradient
+            if (specialCount > 1) {
+                return 'line-mixed';
+            }
+
+            // Single special line
+            if (hasRed) return 'line-red';
+            if (hasBlue) return 'line-blue';
+            if (hasOrange) return 'line-orange';
+
+            // Default AUVASA green
+            return '';
+        }
+
         // Display Stops on Map with Clustering
         function displayStopsOnMap() {
             // Clear existing cluster group
@@ -1347,10 +1475,10 @@
                 };
 
                 const isFavorite = favorites.includes(stop.numero);
+                const colorClass = getMarkerColorClass(stop.lineas);
 
                 const markerHtml = `
-                    <div class="bus-stop-marker ${isFavorite ? 'favorite' : ''}">
-                        <i data-lucide="bus" style="width:16px;height:16px"></i>
+                    <div class="bus-stop-marker ${colorClass} ${isFavorite ? 'favorite' : ''}">
                     </div>
                 `;
 
@@ -1358,7 +1486,7 @@
                     icon: L.divIcon({
                         html: markerHtml,
                         className: 'custom-div-icon',
-                        iconSize: [24, 24]
+                        iconSize: [28, 28]
                     })
                 });
 
