@@ -1066,6 +1066,72 @@
             line-height: 1.6;
         }
 
+        /* Map Style Selector */
+        .map-style-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .map-style-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .map-style-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .map-style-card.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+        }
+
+        .map-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .map-preview.dark {
+            background: #242424;
+            background-image: linear-gradient(45deg, #333 25%, transparent 25%), linear-gradient(-45deg, #333 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #333 75%), linear-gradient(-45deg, transparent 75%, #333 75%);
+            background-size: 20px 20px;
+        }
+
+        .map-preview.light {
+            background: #f0f0f0;
+            background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%);
+            background-size: 20px 20px;
+        }
+
+        .map-preview.satellite {
+            background: #004d40;
+            background-image: radial-gradient(circle, #00695c 10%, transparent 10%);
+            background-size: 20px 20px;
+        }
+
+        .map-preview.traffic {
+            background: #043424;
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
+        .map-style-card span {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
         /* Loading State */
         .loading {
             text-align: center;
@@ -1370,12 +1436,31 @@
                 <h3>Información</h3>
                 <p>Gestiona tus paradas favoritas y preferencias de BuSolid desde aquí.</p>
             </div>
-            <div class="account-section">
-                <h3>Acerca de</h3>
-                <p>BuSolid - Tu compañero de transporte público en Valladolid.</p>
-                <p style="margin-top: 10px; font-size: 12px; opacity: 0.5;">Versión 1.0.0</p>
+            <p style="margin-top: 10px; font-size: 12px; opacity: 0.5;">Versión 1.0.0</p>
+        </div>
+
+        <div class="account-section">
+            <h3>Estilo de Mapa</h3>
+            <div class="map-style-grid">
+                <div class="map-style-card active" onclick="changeMapStyle('dark')" id="style-card-dark">
+                    <div class="map-preview dark"></div>
+                    <span>Oscuro</span>
+                </div>
+                <div class="map-style-card" onclick="changeMapStyle('light')" id="style-card-light">
+                    <div class="map-preview light"></div>
+                    <span>Claro</span>
+                </div>
+                <div class="map-style-card" onclick="changeMapStyle('satellite')" id="style-card-satellite">
+                    <div class="map-preview satellite"></div>
+                    <span>Satélite</span>
+                </div>
+                <div class="map-style-card" onclick="changeMapStyle('traffic')" id="style-card-traffic">
+                    <div class="map-preview traffic"></div>
+                    <span>Tráfico</span>
+                </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Stop Preview Card -->
@@ -1483,7 +1568,43 @@
         let markerClusterGroup = null;  // Marker cluster group
         let favorites = JSON.parse(localStorage.getItem('busolid_favorites') || '[]');
         let updateInterval = null;
-        let selectedStopId = null;
+        let currentTileLayer = null; // Store current tile layer
+
+        // Map Styles Configuration
+        const MAP_STYLES = {
+            'dark': {
+                url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                options: {
+                    maxZoom: 20,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    className: '' // No inversion needed for native dark map
+                }
+            },
+            'light': {
+                url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                options: {
+                    maxZoom: 20,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    className: ''
+                }
+            },
+            'satellite': {
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                options: {
+                    maxZoom: 19,
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                    className: ''
+                }
+            },
+            'traffic': {
+                url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                options: {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors',
+                    className: 'inverted-map-layer' // High contrast dark mode via inversion
+                }
+            }
+        };
 
         // Initialize Map
         function initMap() {
@@ -1497,17 +1618,50 @@
                 attributionControl: false
             });
 
-            // Dark mode inverted map tiles
-            const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                className: 'inverted-map-layer'
-            }).addTo(map);
+            // Load saved style or default to 'traffic' (classic inverted)
+            const savedStyle = localStorage.getItem('busolid_map_style') || 'traffic';
+            setMapStyle(savedStyle, false); // false = don't save again on init
 
             // Request user location
             getUserLocation();
 
             // Load bus stops
             loadBusStops();
+        }
+
+        // Change Map Style
+        function changeMapStyle(styleId) {
+            if (!MAP_STYLES[styleId]) return;
+
+            // Update tiles
+            setMapStyle(styleId, true);
+
+            // Update UI
+            document.querySelectorAll('.map-style-card').forEach(card => card.classList.remove('active'));
+            document.getElementById(`style-card-${styleId}`).classList.add('active');
+        }
+
+        function setMapStyle(styleId, savePreference = true) {
+            const style = MAP_STYLES[styleId];
+
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
+
+            currentTileLayer = L.tileLayer(style.url, style.options).addTo(map);
+
+            if (savePreference) {
+                localStorage.setItem('busolid_map_style', styleId);
+            }
+
+            // Update active card on load
+            setTimeout(() => {
+                const card = document.getElementById(`style-card-${styleId}`);
+                if (card) {
+                    document.querySelectorAll('.map-style-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                }
+            }, 100);
         }
 
         // Get User Location
