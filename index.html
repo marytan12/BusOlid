@@ -796,6 +796,10 @@
             will-change: transform;
         }
 
+        .nav-btn span {
+            display: none;
+        }
+
         .nav-btn:active {
             transform: scale(0.95);
         }
@@ -805,8 +809,8 @@
         }
 
         .nav-btn svg {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
         }
 
         /* View Panels */
@@ -2704,18 +2708,33 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector('[data-view="map"]').classList.add('active');
 
+            // Update liquid indicator
+            const mapBtn = document.querySelector('[data-view="map"]');
+            if (mapBtn) updateNavIndicator(mapBtn);
+
             // Fly to location
-            map.flyTo([lat, lng], 17, {
-                duration: 1.5
+            map.flyTo([lat, lng], 18, {
+                duration: 1.2
             });
 
             // Open popup after flight
             setTimeout(() => {
-                const stop = busStops.find(s => s.parada === stopId);
-                if (stop) {
+                // Find raw data
+                // stopId comes as string or number, ensure lenient comparison
+                const stopData = busStops.find(s => s.parada && s.parada.numero == stopId);
+
+                if (stopData) {
+                    // Normalize stop object format for showStopInfo
+                    const stop = {
+                        numero: stopData.parada.numero,
+                        nombre: stopData.parada.nombre,
+                        lat: stopData.ubicacion.y,
+                        lng: stopData.ubicacion.x,
+                        lineas: stopData.lineas.ordinarias || []
+                    };
                     showStopInfo(stop);
                 }
-            }, 1500);
+            }, 800); // Shorter delay for snappier feel
         }
 
         // Navigation
