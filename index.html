@@ -2241,7 +2241,8 @@
                             destination: line.destino || nextArrival.destino,
                             minutesRemaining,
                             arrivalTime: nextArrival.fechaHoraLlegada, // Pass full timestamp
-                            tripId: nextArrival.viaje || nextArrival.tripId || (line.realtime && line.realtime[0] ? line.realtime[0].tripId : null), // Try to capture trip ID
+                            // Try ALL possible fields for Trip ID
+                            tripId: nextArrival.viaje || nextArrival.tripId || nextArrival.trip_id || nextArrival.idViaje || nextArrival.codViaje || (line.realtime && line.realtime[0] ? line.realtime[0].tripId : null),
                             occupancy: line.realtime && line.realtime[0] ? vallaBusAPI.formatOccupancy(line.realtime[0].ocupacion) : ''
                         });
                     }
@@ -2265,11 +2266,12 @@
 
                     const lineColor = getLineColor(nextBus.line);
 
-                    // Render Tracking Button if tripId exists
-                    const trackingBtn = nextBus.tripId ?
-                        `<button class="reminder-btn" onclick="trackBus('${nextBus.tripId}', '${nextBus.line}')" style="margin-right:4px; color:#3b82f6; border-color:rgba(59,130,246,0.3); background:rgba(59,130,246,0.1)">
-                    <i data-lucide="map-pin" style="width:16px; height:16px"></i>
-                </button>` : '';
+                    // Render Tracking Button ALWAYS (grey if no ID)
+                    const hasTripId = !!nextBus.tripId;
+                    const trackingBtn = `
+                        <button class="reminder-btn" onclick="trackBus('${nextBus.tripId || ''}', '${nextBus.line}')" style="margin-right:4px; color:${hasTripId ? '#3b82f6' : '#94a3b8'}; border-color:rgba(59,130,246,0.3); background:rgba(59,130,246,0.1); opacity:${hasTripId ? 1 : 0.5}">
+                            <i data-lucide="map-pin" style="width:16px; height:16px"></i>
+                        </button>`;
 
                     nextBusSummary = `
                 <div class="bus-summary">
@@ -2308,10 +2310,11 @@
 
                     const busLineColor = getLineColor(bus.line);
 
-                    const listTrackingBtn = bus.tripId ?
-                        `<button class="reminder-btn" onclick="trackBus('${bus.tripId}', '${bus.line}')" style="margin-right:4px; color:#3b82f6; border-color:rgba(59,130,246,0.3); background:rgba(59,130,246,0.1)">
-                    <i data-lucide="map-pin" style="width:16px; height:16px"></i>
-                </button>` : '';
+                    const hasTripIdLocal = !!bus.tripId;
+                    const listTrackingBtn = `
+                        <button class="reminder-btn" onclick="trackBus('${bus.tripId || ''}', '${bus.line}')" style="margin-right:4px; color:${hasTripIdLocal ? '#3b82f6' : '#94a3b8'}; border-color:rgba(59,130,246,0.3); background:rgba(59,130,246,0.1); opacity:${hasTripIdLocal ? 1 : 0.5}">
+                            <i data-lucide="map-pin" style="width:16px; height:16px"></i>
+                        </button>`;
 
                     allBusesHtml += `
                 <div class="bus-line-item">
