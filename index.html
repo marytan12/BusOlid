@@ -27,6 +27,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -244,6 +248,13 @@
             height: 100vh;
             z-index: 1;
             background: var(--bg-main);
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        /* Dark mode map tiles */
+        .inverted-map-layer {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
         }
 
         /* Hide Leaflet attribution */
@@ -252,10 +263,16 @@
             display: none !important;
         }
 
-        /* Bus Stop Markers */
+        /* Bus Stop Markers - Liquid Glass Style */
         .custom-div-icon {
             background: transparent;
             border: none;
+        }
+
+        .glass-marker {
+            position: relative;
+            width: 32px;
+            height: 32px;
         }
 
         .bus-stop-marker {
@@ -269,54 +286,70 @@
             font-weight: 700;
             font-size: 14px;
             background: linear-gradient(135deg, var(--color-emerald), #059669);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
-            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .bus-stop-marker.no-buses {
             background: linear-gradient(135deg, var(--color-red), #dc2626);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+            border-color: rgba(239, 68, 68, 0.8);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
         }
 
         .bus-stop-marker.few-buses {
             background: linear-gradient(135deg, var(--color-orange), #ea580c);
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.5);
+            border-color: rgba(249, 115, 22, 0.8);
+            box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
         }
 
         .bus-stop-marker.favorite {
             border: 3px solid rgba(251, 191, 36, 0.8);
-            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.6);
+            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
             transform: scale(1.1);
         }
 
-        /* Popup Styles */
+        .bus-stop-marker.favorite::before {
+            content: '⭐';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            font-size: 14px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Popup Styles - Liquid Glass */
         .leaflet-popup-content-wrapper {
-            background: linear-gradient(135deg, rgba(10, 92, 72, 0.98), rgba(4, 52, 36, 0.95));
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: linear-gradient(135deg, rgba(10, 92, 72, 0.95), rgba(4, 52, 36, 0.9));
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
             color: var(--text-main);
-            border: 1px solid rgba(123, 207, 184, 0.3);
-            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             padding: 0;
+            overflow: hidden;
         }
 
         .leaflet-popup-tip {
-            background: linear-gradient(135deg, rgba(10, 92, 72, 0.98), rgba(4, 52, 36, 0.95));
-            border: 1px solid rgba(123, 207, 184, 0.3);
+            background: linear-gradient(135deg, rgba(10, 92, 72, 0.95), rgba(4, 52, 36, 0.9));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .leaflet-popup-content {
             margin: 0;
-            min-width: 300px;
+            min-width: 280px;
         }
 
         .leaflet-container a.leaflet-popup-close-button {
             color: rgba(255, 255, 255, 0.6);
-            font-size: 22px;
-            top: 15px;
-            right: 15px;
+            font-size: 20px;
+            top: 24px;
+            right: 20px;
+            padding: 0;
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -326,6 +359,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
         }
 
         .leaflet-container a.leaflet-popup-close-button:hover {
@@ -469,12 +503,12 @@
             background: linear-gradient(135deg, #f59e0b, #d97706);
         }
 
-        /* Bottom Navigation */
+        /* Bottom Navigation - Liquid Pill */
         .bottom-nav {
             position: fixed;
             bottom: 20px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateZ(0);
             width: 90%;
             max-width: 400px;
             height: 70px;
@@ -484,11 +518,32 @@
             align-items: center;
             justify-content: space-around;
             padding: 0 10px;
-            background: rgba(10, 92, 72, 0.9);
+
+            background: rgba(10, 92, 72, 0.5);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(123, 207, 184, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+            will-change: transform, border-radius;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Liquid indicator */
+        .nav-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%) translateZ(0);
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            backdrop-filter: blur(8px) saturate(150%);
+            -webkit-backdrop-filter: blur(8px) saturate(150%);
+            z-index: -1;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), inset 0 0 15px rgba(255, 255, 255, 0.1);
+            will-change: transform, width, left;
         }
 
         .nav-btn {
@@ -503,10 +558,11 @@
             background: transparent;
             color: rgba(255, 255, 255, 0.6);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
             border-radius: 30px;
             font-size: 10px;
             font-weight: 500;
+            will-change: transform;
         }
 
         .nav-btn:active {
@@ -623,35 +679,182 @@
             border-radius: 6px;
         }
 
-        /* Settings Button */
-        .settings-btn {
+        /* Account Button - Morphing */
+        .account-btn {
             position: fixed;
             top: 15px;
             right: 15px;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             z-index: 2100;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            will-change: transform;
             background: var(--bg-glass);
-            border: 1px solid rgba(123, 207, 184, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            color: var(--text-main);
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: var(--text-muted);
         }
 
-        .settings-btn:active {
+        .account-btn:hover {
+            color: var(--color-primary-light);
+            background: var(--bg-glass-strong);
+        }
+
+        .account-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .account-btn.morphing svg {
+            transform: rotate(90deg) scale(0);
+            opacity: 0;
+        }
+
+        .account-btn.active {
+            transform: rotate(180deg);
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .account-btn.active::before,
+        .account-btn.active::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 2px;
+            background: #fff;
+            border-radius: 1px;
+        }
+
+        .account-btn.active::before {
+            transform: rotate(45deg);
+        }
+
+        .account-btn.active::after {
+            transform: rotate(-45deg);
+        }
+
+        .account-btn:active {
             transform: scale(0.95);
         }
 
-        .settings-btn svg {
-            width: 22px;
-            height: 22px;
+        .account-btn.active:active {
+            transform: rotate(180deg) scale(0.95);
+        }
+
+        /* Account Screen - Liquid Animation */
+        #account-screen {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            background: linear-gradient(155deg,
+                    rgba(4, 52, 36, 0.95) 0%,
+                    rgba(10, 92, 72, 0.92) 50%,
+                    rgba(7, 65, 53, 0.95) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: none;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transform-origin: calc(100% - 35px) 35px;
+            transform: scale(0);
+            opacity: 0;
+            border-radius: 50%;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                border-radius 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            will-change: transform, opacity, border-radius;
+        }
+
+        #account-screen.show {
+            transform: scale(1);
+            opacity: 1;
+            border-radius: 0;
+            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.6),
+                inset 1px 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .account-header {
+            flex-shrink: 0;
+            padding: 30px 25px 25px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: linear-gradient(135deg,
+                    rgba(123, 207, 184, 0.12),
+                    rgba(16, 185, 129, 0.08));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .account-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    transparent);
+        }
+
+        .account-title {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .account-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            padding-bottom: 40px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .account-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .account-section {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .account-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .account-section p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         /* Loading State */
@@ -701,6 +904,63 @@
         .empty-state-text {
             font-size: 14px;
         }
+
+        /* Liquid Glass Effect */
+        .glass-effect {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        /* Hide elements */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Marker Cluster Styles - Custom BuSolid Style */
+        .marker-cluster-small,
+        .marker-cluster-medium,
+        .marker-cluster-large {
+            background: linear-gradient(135deg, rgba(123, 207, 184, 0.9), rgba(10, 92, 72, 0.95)) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 4px 16px rgba(123, 207, 184, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset !important;
+        }
+
+        .marker-cluster-small div,
+        .marker-cluster-medium div,
+        .marker-cluster-large div {
+            background: linear-gradient(135deg, rgba(123, 207, 184, 0.95), rgba(16, 185, 129, 0.9)) !important;
+            color: white !important;
+            font-weight: 700 !important;
+            font-size: 14px !important;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .marker-cluster-large {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.9)) !important;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.3) inset !important;
+        }
+
+        .marker-cluster-large div {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.98), rgba(5, 150, 105, 0.95)) !important;
+            font-size: 16px !important;
+        }
+
+        /* Cluster hover effect */
+        .marker-cluster:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
     </style>
 </head>
 
@@ -708,13 +968,32 @@
     <!-- Map Container -->
     <div id="map"></div>
 
-    <!-- Settings Button -->
-    <button class="settings-btn" id="settingsBtn">
-        <i data-lucide="settings"></i>
+    <!-- Account Button -->
+    <button class="account-btn" id="accountBtn">
+        <i data-lucide="user"></i>
     </button>
+
+    <!-- Account Screen -->
+    <div id="account-screen">
+        <div class="account-header">
+            <h2 class="account-title">Mi Cuenta</h2>
+        </div>
+        <div class="account-content">
+            <div class="account-section">
+                <h3>Información</h3>
+                <p>Gestiona tus paradas favoritas y preferencias de BuSolid desde aquí.</p>
+            </div>
+            <div class="account-section">
+                <h3>Acerca de</h3>
+                <p>BuSolid - Tu compañero de transporte público en Valladolid.</p>
+                <p style="margin-top: 10px; font-size: 12px; opacity: 0.5;">Versión 1.0.0</p>
+            </div>
+        </div>
+    </div>
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
+        <div class="nav-indicator"></div>
         <button class="nav-btn active" data-view="map">
             <i data-lucide="map"></i>
             <span>Mapa</span>
@@ -760,6 +1039,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
+    <!-- Leaflet MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
@@ -769,6 +1051,7 @@
         let userLocation = null;
         let busStops = [];
         let stopMarkers = [];
+        let markerClusterGroup = null;  // Marker cluster group
         let favorites = JSON.parse(localStorage.getItem('busolid_favorites') || '[]');
         let updateInterval = null;
         let selectedStopId = null;
@@ -785,8 +1068,10 @@
                 attributionControl: false
             });
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19
+            // Dark mode inverted map tiles
+            const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                className: 'inverted-map-layer'
             }).addTo(map);
 
             // Request user location
@@ -857,10 +1142,35 @@
             }
         }
 
-        // Display Stops on Map
+        // Display Stops on Map with Clustering
         function displayStopsOnMap() {
-            // Clear existing markers
-            stopMarkers.forEach(marker => map.removeLayer(marker));
+            // Clear existing cluster group
+            if (markerClusterGroup) {
+                map.removeLayer(markerClusterGroup);
+            }
+
+            // Create marker cluster group with custom options
+            markerClusterGroup = L.markerClusterGroup({
+                maxClusterRadius: 60,  // Distance in pixels to cluster
+                spiderfyOnMaxZoom: true,  // Show all markers when zoomed in max
+                showCoverageOnHover: false,  // Don't show cluster coverage on hover
+                zoomToBoundsOnClick: true,  // Zoom to cluster bounds on click
+                disableClusteringAtZoom: 17,  // Stop clustering at zoom level 17
+                iconCreateFunction: function (cluster) {
+                    const count = cluster.getChildCount();
+                    let size = 'small';
+
+                    if (count > 10) size = 'medium';
+                    if (count > 50) size = 'large';
+
+                    return L.divIcon({
+                        html: `<div><span>${count}</span></div>`,
+                        className: `marker-cluster marker-cluster-${size}`,
+                        iconSize: L.point(40, 40)
+                    });
+                }
+            });
+
             stopMarkers = [];
 
             busStops.forEach(stopData => {
@@ -889,20 +1199,25 @@
                         className: 'custom-div-icon',
                         iconSize: [36, 36]
                     })
-                }).addTo(map);
+                });
 
                 marker.on('click', () => {
                     selectedStopId = stop.numero;
                     showStopInfo(stop);
                 });
 
+                // Add marker to cluster group instead of map
+                markerClusterGroup.addLayer(marker);
                 stopMarkers.push(marker);
             });
+
+            // Add cluster group to map
+            map.addLayer(markerClusterGroup);
 
             // Reinitialize Lucide icons for new markers
             lucide.createIcons();
 
-            console.log(`Loaded ${stopMarkers.length} bus stops on the map`);
+            console.log(`Loaded ${stopMarkers.length} bus stops with clustering`);
         }
 
         // Show Stop Info in Popup
@@ -1198,6 +1513,9 @@
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
 
+                // Update liquid indicator
+                updateNavIndicator(this);
+
                 // Close all panels
                 document.querySelectorAll('.view-panel').forEach(panel => {
                     panel.classList.remove('active');
@@ -1214,9 +1532,53 @@
             });
         });
 
+        // Liquid Navigation Indicator
+        function updateNavIndicator(activeBtn) {
+            const indicator = document.querySelector('.nav-indicator');
+            const nav = document.querySelector('.bottom-nav');
+            const navRect = nav.getBoundingClientRect();
+            const btnRect = activeBtn.getBoundingClientRect();
+
+            const btnWidth = btnRect.width;
+            const leftPosition = btnRect.left - navRect.left;
+
+            indicator.style.width = `${btnWidth}px`;
+            indicator.style.left = `${leftPosition}px`;
+        }
+
+        // Account Button Toggle
+        const accountBtn = document.getElementById('accountBtn');
+        const accountScreen = document.getElementById('account-screen');
+
+        accountBtn.addEventListener('click', function () {
+            const isActive = this.classList.contains('active');
+
+            if (!isActive) {
+                // Opening animation
+                this.classList.add('morphing');
+                setTimeout(() => {
+                    this.classList.remove('morphing');
+                    this.classList.add('active');
+                    accountScreen.classList.add('show');
+                }, 300);
+            } else {
+                // Closing animation
+                accountScreen.classList.remove('show');
+                setTimeout(() => {
+                    this.classList.remove('active');
+                }, 300);
+            }
+        });
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
+
+            // Initialize liquid navigation indicator
+            const activeNavBtn = document.querySelector('.nav-btn.active');
+            if (activeNavBtn) {
+                setTimeout(() => updateNavIndicator(activeNavBtn), 100);
+            }
 
             // Register service worker
             if ('serviceWorker' in navigator) {
