@@ -1414,6 +1414,197 @@
             margin: 0 auto 15px;
             opacity: 0.3;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(4, 52, 36, 0.98));
+            width: 90%;
+            max-width: 340px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 20px;
+        }
+
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .reminder-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .reminder-dest {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .time-input-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 5px;
+        }
+
+        .modern-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            font-family: 'SF Mono', monospace;
+            padding: 10px;
+            outline: none;
+        }
+
+        /* Fix time input icon color in WebKit */
+        .modern-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .quick-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .chip {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .chip:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #10b981;
+        }
+
+        .btn-secondary {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:active,
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+
+        .reminder-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .reminder-btn:hover {
+            color: white;
+        }
     </style>
 </head>
 
@@ -1461,6 +1652,51 @@
             </div>
         </div>
     </div>
+    </div>
+    </div>
+    </div>
+
+    <!-- Reminder Modal -->
+    <div id="reminder-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔔 Crear Recordatorio</h3>
+                <button class="modal-close" onclick="closeReminderModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="reminder-info">
+                    <span id="reminder-bus-line" class="bus-line-number"
+                        style="font-size:12px; height:22px; min-width:30px;">1</span>
+                    <span id="reminder-bus-dest" class="reminder-dest">Parquesol</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Hora de salida de casa</label>
+                    <div class="time-input-wrapper">
+                        <input type="time" id="reminder-time" class="modern-input">
+                    </div>
+                    <div class="helper-text">Calculado: 15 min antes de la llegada</div>
+                </div>
+
+                <div class="quick-options">
+                    <button class="chip" onclick="adjustReminder(-5)">-5 min</button>
+                    <button class="chip" onclick="adjustReminder(5)">+5 min</button>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="setCalendarReminder()">
+                        <i data-lucide="calendar"></i> Añadir a Calendario
+                    </button>
+                    <!-- Android Only Option -->
+                    <button class="btn-secondary" onclick="setAndroidAlarm()" id="android-alarm-btn">
+                        <i data-lucide="alarm-clock"></i> Abrir Reloj (Android)
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Stop Preview Card -->
@@ -1958,6 +2194,7 @@
                             line: line.linea,
                             destination: line.destino || nextArrival.destino,
                             minutesRemaining,
+                            arrivalTime: nextArrival.fechaHoraLlegada, // Pass full timestamp
                             occupancy: line.realtime && line.realtime[0] ? vallaBusAPI.formatOccupancy(line.realtime[0].ocupacion) : ''
                         });
                     }
@@ -1987,8 +2224,13 @@
                                     <div class="next-bus-label">Próximo Bus</div>
                                     <span class="bus-line-number" style="background: ${lineColor}">${nextBus.line}</span>
                                 </div>
-                                <div class="bus-summary-time ${urgentClass}">
-                                    ${timeDisplay}
+                                <div style="display:flex; align-items:center; gap:8px">
+                                    <button class="reminder-btn" onclick="openReminderModal('${nextBus.line}', '${nextBus.destination || ''}', '${nextBus.arrivalTime}')">
+                                        <i data-lucide="bell" style="width:16px; height:16px"></i>
+                                    </button>
+                                    <div class="bus-summary-time ${urgentClass}">
+                                        ${timeDisplay}
+                                    </div>
                                 </div>
                             </div>
                             <div class="bus-summary-destination">${nextBus.destination}</div>
@@ -2016,8 +2258,13 @@
                                 <div>
                                     <span class="bus-line-number" style="background: ${busLineColor}">${bus.line}</span>
                                 </div>
-                                <div class="bus-arrival-time ${urgentClass}">
-                                    ${timeDisplay}
+                                <div style="display:flex; align-items:center; gap:8px">
+                                    <button class="reminder-btn" onclick="openReminderModal('${bus.line}', '${bus.destination || ''}', '${bus.arrivalTime}')">
+                                        <i data-lucide="bell" style="width:16px; height:16px"></i>
+                                    </button>
+                                    <div class="bus-arrival-time ${urgentClass}">
+                                        ${timeDisplay}
+                                    </div>
                                 </div>
                             </div>
                             <div class="bus-destination">${bus.destination}</div>
@@ -2047,6 +2294,111 @@
 
             previewContent.innerHTML = content;
             lucide.createIcons();
+        }
+
+        // Reminder System Logic
+        let currentReminder = null;
+
+        function openReminderModal(line, destination, arrivalTimeStr) {
+            const modal = document.getElementById('reminder-modal');
+            const busLineEl = document.getElementById('reminder-bus-line');
+            const busDestEl = document.getElementById('reminder-bus-dest');
+            const timeInput = document.getElementById('reminder-time');
+
+            // Set bus info
+            busLineEl.textContent = line;
+            busLineEl.style.background = getLineColor(line);
+            busDestEl.textContent = destination;
+
+            // Calculate default reminder time (Arrival - 15 mins)
+            const arrivalDate = new Date(arrivalTimeStr);
+            const reminderDate = new Date(arrivalDate.getTime() - 15 * 60000); // subtract 15 mins
+
+            // Format time for input type="time" (HH:MM)
+            const hours = reminderDate.getHours().toString().padStart(2, '0');
+            const minutes = reminderDate.getMinutes().toString().padStart(2, '0');
+            timeInput.value = `${hours}:${minutes}`;
+
+            // Store current context
+            currentReminder = {
+                line,
+                destination,
+                arrivalDate
+            };
+
+            // Show Android specific button only if user agent looks like Android
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const androidBtn = document.getElementById('android-alarm-btn');
+            if (androidBtn) {
+                androidBtn.style.display = isAndroid ? 'flex' : 'none';
+            }
+
+            modal.classList.add('visible');
+        }
+
+        function closeReminderModal() {
+            document.getElementById('reminder-modal').classList.remove('visible');
+        }
+
+        function adjustReminder(minutes) {
+            const timeInput = document.getElementById('reminder-time');
+            const [currentHours, currentMinutes] = timeInput.value.split(':').map(Number);
+
+            const date = new Date();
+            date.setHours(currentHours);
+            date.setMinutes(currentMinutes + minutes);
+
+            const h = date.getHours().toString().padStart(2, '0');
+            const m = date.getMinutes().toString().padStart(2, '0');
+            timeInput.value = `${h}:${m}`;
+        }
+
+        function setCalendarReminder() {
+            if (!currentReminder) return;
+
+            const timeInput = document.getElementById('reminder-time');
+            const [hours, minutes] = timeInput.value.split(':').map(Number);
+
+            // Create event dates
+            // We assume the date is today unless the time is past bus arrival, but for simplicity let's stick to bus arrival date logic
+            // Ideally we need the full date from the bus arrival, and adjust just the time.
+            const eventDate = new Date(currentReminder.arrivalDate);
+            eventDate.setHours(hours);
+            eventDate.setMinutes(minutes);
+
+            // Create .ics url structure
+            // VCALENDAR format
+            const startTime = eventDate.toISOString().replace(/-|:|\.\d+/g, '');
+            const endTime = new Date(eventDate.getTime() + 15 * 60000).toISOString().replace(/-|:|\.\d+/g, ''); // 15 min duration
+
+            const title = `🚌 Bus Línea ${currentReminder.line}`;
+            const details = `Salida hacia parada para coger bus a ${currentReminder.destination}`;
+
+            // Generate link for Google Calendar (Web) which is reliable cross-platform
+            const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startTime}/${endTime}&details=${encodeURIComponent(details)}&sf=true&output=xml`;
+
+            window.open(gCalUrl, '_blank');
+            closeReminderModal();
+        }
+
+        function setAndroidAlarm() {
+            if (!currentReminder) return;
+
+            const timeInput = document.getElementById('reminder-time');
+            const [hours, minutes] = timeInput.value.split(':').map(Number);
+            const title = `Bus Línea ${currentReminder.line}`;
+
+            // Try the Android Intent trick
+            // This constructs an intent URL that tries to open the clock app's Set Alarm activity
+            const intentUrl = `intent:#Intent;action=android.intent.action.SET_ALARM;i.android.intent.extra.alarm.HOUR=${hours};i.android.intent.extra.alarm.MINUTES=${minutes};s.android.intent.extra.alarm.MESSAGE=${encodeURIComponent(title)};end`;
+
+            window.location.href = intentUrl;
+
+            // Fallback implies the user stays on page if intent fails, we should probably close modal
+            // But if intent works, they leave browser.
+            setTimeout(() => {
+                closeReminderModal();
+            }, 500);
         }
 
         // Close Stop Preview Card
