@@ -2775,8 +2775,8 @@
 
                         busTrackingLayer = L.marker([lat, lng], { icon: busIcon }).addTo(map);
 
-                        // Fly to bus
-                        map.setView([lat, lng], 16);
+                        // Slide map to follow bus smoothly
+                        map.panTo([lat, lng], { animate: true, duration: 1.5 });
                     }
                 } catch (e) {
                     console.error("Error tracking bus", e);
@@ -2786,8 +2786,8 @@
             // First update
             await updatePosition();
 
-            // Auto update every 5s for smooth tracking
-            busTrackingInterval = setInterval(updatePosition, 5000);
+            // Auto update every 3s for real-time feel
+            busTrackingInterval = setInterval(updatePosition, 3000);
 
             // Stop tracking if map is clicked (optional, but good for UX)
             map.once('click', () => {
