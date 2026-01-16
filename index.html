@@ -2727,12 +2727,16 @@
         let busTrackingLayer = null;
         let busRouteLayer = null;
         let busTrackingInterval = null;
+        let autoFollowBus = true; // State to track if camera should follow bus
 
         async function trackBus(tripId, line) {
             if (!tripId || tripId === 'undefined') {
                 alert('Información de rastreo no disponible para este bus.');
                 return;
             }
+
+            // Reset Auto Follow
+            autoFollowBus = true;
 
             // Show Loading State immediately
             showBusTrackingInfo({ velocidad: 0 }, line, true);
@@ -2751,14 +2755,29 @@
                 busTrackingInterval = null;
             }
 
+            // Setup interactions to disable auto-follow
+            const disableAutoFollow = () => {
+                if (autoFollowBus) {
+                    autoFollowBus = false;
+                    // Update UI to show "Recenter" button immediately if we have data
+                    if (window.currentBusDataForUI) {
+                        updateTrackingUI(window.currentBusDataForUI, line);
+                    }
+                }
+            };
+
+            // Listen for user interactions
+            map.on('dragstart', disableAutoFollow);
+            map.on('zoomstart', disableAutoFollow);
+
             // Close preview to show map
             closeStopPreview();
 
-            // Draw Route (OPAQUE) - Async but don't wait to start checking position
+            // Draw Route (OPAQUE)
             fetch(`https://gtfs.vallabus.com/v2/geojson/${tripId}`)
                 .then(r => r.json())
                 .then(routeData => {
-                    if (routeData && !busTrackingInterval) { // Only add if we haven't cancelled
+                    if (routeData && !busTrackingInterval) {
                         const routeColor = getLineColor(line) || '#10b981';
                         busRouteLayer = L.geoJSON(routeData, {
                             style: {
@@ -2773,6 +2792,8 @@
                 })
                 .catch(e => console.error("Error route", e));
 
+            window.currentBusDataForUI = { velocidad: 0 }; // Store for UI updates
+
             const updatePosition = async () => {
                 try {
                     const response = await fetch(`https://gtfs.vallabus.com/v2/busPosition/${tripId}`);
@@ -2780,23 +2801,23 @@
 
                     if (data && data.length > 0) {
                         const bus = data[0];
+                        window.currentBusDataForUI = bus;
                         const lat = bus.latitud;
                         const lng = bus.longitud;
 
-                        // SUCCESS: We have data. Now we can safely enter Focus Mode
+                        // SUCCESS: Enter Focus Mode
                         if (markerClusterGroup && map.hasLayer(markerClusterGroup)) {
                             map.removeLayer(markerClusterGroup);
                         }
 
-                        // Update Info Card with real data
-                        showBusTrackingInfo(bus, line, false);
+                        // Update Info Card (silently if already open)
+                        updateTrackingUI(bus, line);
 
                         // Remove old marker
                         if (busTrackingLayer) map.removeLayer(busTrackingLayer);
 
                         // Create custom bus icon
                         const busColor = getLineColor(line) || '#10b981';
-                        // Add click event to marker to show options
                         const busIcon = L.divIcon({
                             className: 'bus-tracking-icon',
                             html: `<div style="background:${busColor}; width:44px; height:44px; border-radius:50%; border:3px solid white; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:white; font-size:20px; cursor:pointer;">
@@ -2809,16 +2830,16 @@
 
                         busTrackingLayer = L.marker([lat, lng], { icon: busIcon }).addTo(map);
 
-                        // Interaction: Click to recenter/show info if closed (though we keep it open now)
+                        // Interaction: Click marker to re-enable auto-follow
                         busTrackingLayer.on('click', () => {
-                            showBusTrackingInfo(bus, line, false);
+                            recenterBus();
                         });
 
-                        // Slide map to follow bus smoothly
-                        map.panTo([lat, lng], { animate: true, duration: 1.5 });
+                        // Slide map ONLY if auto-follow is enabled
+                        if (autoFollowBus) {
+                            map.panTo([lat, lng], { animate: true, duration: 1.5 });
+                        }
                     } else {
-                        // NO DATA received (and it's the first check or subsequent)
-                        // If it's the very first check (no interval yet), warn and exit
                         if (!busTrackingInterval) {
                             alert("No se ha podido localizar el autobús en este momento.");
                             stopTrackingBus();
@@ -2833,40 +2854,54 @@
                 }
             };
 
-            // First update
             await updatePosition();
 
-            // Should initiate interval only if we didn't fail
-            // We check busTrackingLayer presence as proxy for success, or just always start to retry?
-            // Safer to retry if we got past the first check without crashing, but let's check
-            // Actually, updatePosition sets busTrackingLayer. 
-            // If first update failed, we called stopTrackingBus, so we shouldn't start interval.
-            // We can check a flag or just if preview card is still open?
-            // Simplest: If preview card is visible, continue.
-
-            // Auto update every 3s for real-time feel
-            // Only start if not already stopped
             const previewCard = document.getElementById('stop-preview-card');
             if (previewCard.classList.contains('visible')) {
                 busTrackingInterval = setInterval(updatePosition, 3000);
             }
 
-            // Stop tracking if map is clicked (optional, but good for UX)
-            // Modified: Clicking map doesn't stop tracking in Focus Mode, must click "Stop Tracking"
-            map.once('click', () => {
-                // Do nothing, keep tracking until user explicitly stops
-            });
+            // Clean up listeners when stopping
+            window.currentDisableAutoFollow = disableAutoFollow;
         }
 
-        // Show Bus Tracking Info Card
+        // Separate function to update UI without recreating everything
+        function updateTrackingUI(bus, line) {
+            showBusTrackingInfo(bus, line, false);
+        }
+
+        function recenterBus() {
+            autoFollowBus = true;
+            if (busTrackingLayer) {
+                const latLng = busTrackingLayer.getLatLng();
+                map.panTo(latLng, { animate: true, duration: 1 });
+                // Force UI update
+                if (window.currentBusDataForUI) {
+                    // Need to know "line" here. Hack: store it globally or pass it.
+                    // For now, finding it from DOM is safe enough or just wait for next interval.
+                    // But we want instant button removal.
+                    // Let's toggle button visibility via DOM
+                    const recenterBtn = document.getElementById('recenter-btn');
+                    if (recenterBtn) recenterBtn.style.display = 'none';
+                    const statusText = document.getElementById('tracking-status-text');
+                    if (statusText) statusText.innerText = 'Siguiendo Autobús';
+                }
+            }
+        }
+
         function showBusTrackingInfo(bus, line, isLoading) {
             const previewCard = document.getElementById('stop-preview-card');
             const previewContent = document.getElementById('preview-content');
             const color = getLineColor(line) || '#10b981';
 
-            let statusText = isLoading ? "Localizando..." : "Siguiendo Autobús";
+            let statusText = isLoading ? "Localizando..." : (autoFollowBus ? "Siguiendo Autobús" : "Seguimiento Pausado");
             let speedText = isLoading ? '<div class="loader"></div>' : `${Math.round(bus.velocidad || 0)} km/h`;
-            let iconColor = isLoading ? '#94a3b8' : 'white';
+
+            // Recenter Button Logic
+            const recenterBtn = !autoFollowBus && !isLoading ?
+                `<button id="recenter-btn" onclick="recenterBus()" style="margin-right:10px; background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:600; font-size:13px; display:flex; align-items:center; gap:6px; box-shadow:0 2px 5px rgba(59,130,246,0.3); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                    <i data-lucide="crosshair" style="width:16px; height:16px;"></i> Recentrar
+                 </button>` : '';
 
             previewContent.innerHTML = `
                 <div style="padding: 10px;">
@@ -2874,16 +2909,18 @@
                          <div style="display:flex; align-items:center; gap:16px;">
                              <span style="font-size:28px; font-weight:800; color:white; background:${color}; width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">${line}</span>
                              <div>
-                                 <div style="font-size:20px; font-weight:700;">${statusText}</div>
+                                 <div id="tracking-status-text" style="font-size:20px; font-weight:700;">${statusText}</div>
                                  <div style="font-size:15px; opacity:0.75; display:flex; align-items:center; gap:6px;">
                                     ${isLoading ? 'Conectando con satélite...' : `<i data-lucide="gauge" style="width:16px; height:16px"></i> ${speedText}`}
                                  </div>
                              </div>
                          </div>
-                         <!-- Close button acts as Stop Tracking too -->
-                         <button onclick="stopTrackingBus()" style="background:rgba(255,255,255,0.1); border:none; padding:8px; border-radius:50%;">
-                             <i data-lucide="x" style="width:24px; height:24px; color:white"></i>
-                         </button>
+                         <div style="display:flex; align-items:center;">
+                             ${recenterBtn}
+                             <button onclick="stopTrackingBus()" style="background:rgba(255,255,255,0.1); border:none; padding:8px; border-radius:50%;">
+                                 <i data-lucide="x" style="width:24px; height:24px; color:white"></i>
+                             </button>
+                         </div>
                      </div>
                      
                      <button onclick="stopTrackingBus()" style="width:100%; padding:16px; background:#ef4444; color:white; border:none; border-radius:16px; font-weight:700; font-size:18px; display:flex; align-items:center; justify-content:center; gap:12px; box-shadow:0 6px 20px rgba(239,68,68,0.4); transition: transform 0.1s;">
@@ -2913,15 +2950,18 @@
                 busRouteLayer = null;
             }
 
+            // Clean listeners
+            if (window.currentDisableAutoFollow) {
+                map.off('dragstart', window.currentDisableAutoFollow);
+                map.off('zoomstart', window.currentDisableAutoFollow);
+            }
+
             // Restore Stops
             if (markerClusterGroup && !map.hasLayer(markerClusterGroup)) {
                 map.addLayer(markerClusterGroup);
             }
 
             closeStopPreview();
-
-            // Optionally zoom out a bit to show context
-            // map.setZoom(map.getZoom() - 1);
         }
 
         // Fly to Stop
