@@ -863,10 +863,19 @@
             stopMarkers.forEach(marker => map.removeLayer(marker));
             stopMarkers = [];
 
-            busStops.forEach(stop => {
-                if (!stop.latitud || !stop.longitud) return;
+            busStops.forEach(stopData => {
+                // API returns: { parada: { nombre, numero }, lineas: { ordinarias }, ubicacion: { x, y } }
+                if (!stopData.ubicacion || !stopData.ubicacion.y || !stopData.ubicacion.x) return;
 
-                const isFavorite = favorites.includes(stop.parada);
+                const stop = {
+                    numero: stopData.parada.numero,
+                    nombre: stopData.parada.nombre,
+                    lat: stopData.ubicacion.y,  // y is latitude
+                    lng: stopData.ubicacion.x,  // x is longitude
+                    lineas: stopData.lineas.ordinarias || []
+                };
+
+                const isFavorite = favorites.includes(stop.numero);
 
                 const markerHtml = `
                     <div class="bus-stop-marker ${isFavorite ? 'favorite' : ''}">
@@ -874,7 +883,7 @@
                     </div>
                 `;
 
-                const marker = L.marker([stop.latitud, stop.longitud], {
+                const marker = L.marker([stop.lat, stop.lng], {
                     icon: L.divIcon({
                         html: markerHtml,
                         className: 'custom-div-icon',
@@ -883,7 +892,7 @@
                 }).addTo(map);
 
                 marker.on('click', () => {
-                    selectedStopId = stop.parada;
+                    selectedStopId = stop.numero;
                     showStopInfo(stop);
                 });
 
@@ -892,14 +901,16 @@
 
             // Reinitialize Lucide icons for new markers
             lucide.createIcons();
+
+            console.log(`Loaded ${stopMarkers.length} bus stops on the map`);
         }
 
         // Show Stop Info in Popup
         async function showStopInfo(stop) {
             const popupContent = `
                 <div class="stop-popup-header">
-                    <div class="stop-popup-title">${stop.nombre || stop.parada}</div>
-                    <div class="stop-popup-number">Parada ${stop.parada}</div>
+                    <div class="stop-popup-title">${stop.nombre}</div>
+                    <div class="stop-popup-number">Parada ${stop.numero}</div>
                 </div>
                 <div class="stop-popup-body">
                     <div class="loading">
@@ -913,20 +924,20 @@
                 maxWidth: 350,
                 className: 'bus-stop-popup'
             })
-                .setLatLng([stop.latitud, stop.longitud])
+                .setLatLng([stop.lat, stop.lng])
                 .setContent(popupContent)
                 .openOn(map);
 
             // Load real-time data
             try {
-                const stopData = await vallaBusAPI.getStopInfo(stop.parada);
+                const stopData = await vallaBusAPI.getStopInfo(stop.numero);
                 updatePopupWithRealtime(popup, stop, stopData);
             } catch (error) {
                 console.error('Error loading stop info:', error);
                 const errorContent = `
                     <div class="stop-popup-header">
-                        <div class="stop-popup-title">${stop.nombre || stop.parada}</div>
-                        <div class="stop-popup-number">Parada ${stop.parada}</div>
+                        <div class="stop-popup-title">${stop.nombre}</div>
+                        <div class="stop-popup-number">Parada ${stop.numero}</div>
                     </div>
                     <div class="stop-popup-body">
                         <div class="no-arrivals">No se pudo cargar la información</div>
@@ -938,7 +949,7 @@
 
         // Update Popup with Real-time Data
         function updatePopupWithRealtime(popup, stop, data) {
-            const isFavorite = favorites.includes(stop.parada);
+            const isFavorite = favorites.includes(stop.numero);
             let linesHtml = '';
 
             if (data && data.lineas && data.lineas.length > 0) {
@@ -978,12 +989,12 @@
 
             const popupContent = `
                 <div class="stop-popup-header">
-                    <div class="stop-popup-title">${stop.nombre || stop.parada}</div>
-                    <div class="stop-popup-number">Parada ${stop.parada}</div>
+                    <div class="stop-popup-title">${stop.nombre}</div>
+                    <div class="stop-popup-number">Parada ${stop.numero}</div>
                 </div>
                 <div class="stop-popup-body">
                     ${linesHtml}
-                    <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" onclick="toggleFavorite('${stop.parada}')">
+                    <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" onclick="toggleFavorite('${stop.numero}')">
                         ${favoriteText}
                     </button>
                 </div>
@@ -1014,8 +1025,15 @@
 
             // Close and reopen popup to refresh
             map.closePopup();
-            const stop = busStops.find(s => s.parada === stopId);
-            if (stop) {
+            const stopData = busStops.find(s => s.parada.numero === stopId);
+            if (stopData) {
+                const stop = {
+                    numero: stopData.parada.numero,
+                    nombre: stopData.parada.nombre,
+                    lat: stopData.ubicacion.y,
+                    lng: stopData.ubicacion.x,
+                    lineas: stopData.lineas.ordinarias || []
+                };
                 setTimeout(() => showStopInfo(stop), 100);
             }
         }
@@ -1036,16 +1054,25 @@
 
             // Calculate distances and sort
             const stopsWithDistance = busStops
-                .filter(stop => stop.latitud && stop.longitud)
-                .map(stop => ({
-                    ...stop,
-                    distance: calculateDistance(
-                        userLocation.lat,
-                        userLocation.lng,
-                        stop.latitud,
-                        stop.longitud
-                    )
-                }))
+                .filter(stopData => stopData.ubicacion && stopData.ubicacion.y && stopData.ubicacion.x)
+                .map(stopData => {
+                    const stop = {
+                        numero: stopData.parada.numero,
+                        nombre: stopData.parada.nombre,
+                        lat: stopData.ubicacion.y,
+                        lng: stopData.ubicacion.x,
+                        lineas: stopData.lineas.ordinarias || []
+                    };
+                    return {
+                        ...stop,
+                        distance: calculateDistance(
+                            userLocation.lat,
+                            userLocation.lng,
+                            stop.lat,
+                            stop.lng
+                        )
+                    };
+                })
                 .sort((a, b) => a.distance - b.distance)
                 .slice(0, 20); // Show top 20 nearest
 
@@ -1056,13 +1083,13 @@
                 const distanceText = distanceM < 1000 ? `${distanceM}m` : `${distanceKm}km`;
 
                 html += `
-                    <div class="stop-card" onclick="flyToStop(${stop.latitud}, ${stop.longitud}, '${stop.parada}')">
+                    <div class="stop-card" onclick="flyToStop(${stop.lat}, ${stop.lng}, '${stop.numero}')">
                         <div class="stop-card-header">
-                            <div class="stop-card-name">${stop.nombre || 'Parada ' + stop.parada}</div>
+                            <div class="stop-card-name">${stop.nombre}</div>
                             <div class="stop-card-distance">${distanceText}</div>
                         </div>
                         <div class="stop-card-lines">
-                            <span class="line-badge">Parada ${stop.parada}</span>
+                            <span class="line-badge">Parada ${stop.numero}</span>
                         </div>
                     </div>
                 `;
@@ -1085,18 +1112,26 @@
                 return;
             }
 
-            const favoriteStops = busStops.filter(stop => favorites.includes(stop.parada));
+            const favoriteStops = busStops
+                .filter(stopData => favorites.includes(stopData.parada.numero))
+                .map(stopData => ({
+                    numero: stopData.parada.numero,
+                    nombre: stopData.parada.nombre,
+                    lat: stopData.ubicacion.y,
+                    lng: stopData.ubicacion.x,
+                    lineas: stopData.lineas.ordinarias || []
+                }));
 
             let html = '';
             favoriteStops.forEach(stop => {
                 html += `
-                    <div class="stop-card" onclick="flyToStop(${stop.latitud}, ${stop.longitud}, '${stop.parada}')">
+                    <div class="stop-card" onclick="flyToStop(${stop.lat}, ${stop.lng}, '${stop.numero}')">
                         <div class="stop-card-header">
-                            <div class="stop-card-name">${stop.nombre || 'Parada ' + stop.parada}</div>
+                            <div class="stop-card-name">${stop.nombre}</div>
                             <div style="color:#f59e0b">⭐</div>
                         </div>
                         <div class="stop-card-lines">
-                            <span class="line-badge">Parada ${stop.parada}</span>
+                            <span class="line-badge">Parada ${stop.numero}</span>
                         </div>
                     </div>
                 `;
