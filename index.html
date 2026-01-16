@@ -2734,6 +2734,11 @@
                 return;
             }
 
+            // Enter Focus Mode: Remove stops to reduce noise
+            if (markerClusterGroup) {
+                map.removeLayer(markerClusterGroup);
+            }
+
             // Clear previous tracking and route
             if (busTrackingLayer) {
                 map.removeLayer(busTrackingLayer);
@@ -2751,7 +2756,7 @@
             // Close preview to show map
             closeStopPreview();
 
-            // Draw Route
+            // Draw Route (OPAQUE)
             try {
                 const routeResponse = await fetch(`https://gtfs.vallabus.com/v2/geojson/${tripId}`);
                 const routeData = await routeResponse.json();
@@ -2761,15 +2766,12 @@
                     busRouteLayer = L.geoJSON(routeData, {
                         style: {
                             color: routeColor,
-                            weight: 5,
-                            opacity: 0.6,
+                            weight: 6, // Thicker
+                            opacity: 1, // OPAQUE
                             lineCap: 'round',
                             lineJoin: 'round'
                         }
                     }).addTo(map);
-
-                    // Fit bounds to route initially to see context (optional, user prefers zoom to bus)
-                    // map.fitBounds(busRouteLayer.getBounds(), {padding: [50, 50]});
                 }
             } catch (e) {
                 console.error("Error fetching bus route", e);
@@ -2790,17 +2792,23 @@
 
                         // Create custom bus icon
                         const busColor = getLineColor(line) || '#10b981';
+                        // Add click event to marker to show options
                         const busIcon = L.divIcon({
                             className: 'bus-tracking-icon',
-                            html: `<div style="background:${busColor}; width:40px; height:40px; border-radius:50%; border:3px solid white; box-shadow:0 4px 15px rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; color:white; font-size:18px;">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>
+                            html: `<div style="background:${busColor}; width:44px; height:44px; border-radius:50%; border:3px solid white; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:white; font-size:20px; cursor:pointer;">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>
                                    </div>
-                                   <div style="position:absolute; bottom:-18px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:white; padding:2px 6px; border-radius:4px; font-size:10px; white-space:nowrap; font-weight:bold;">${bus.velocidad > 1 ? Math.round(bus.velocidad) + ' km/h' : 'Parado'}</div>`,
-                            iconSize: [40, 40],
-                            iconAnchor: [20, 20]
+                                   <div style="position:absolute; bottom:-20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:3px 8px; border-radius:6px; font-size:11px; white-space:nowrap; font-weight:800; border:1px solid rgba(255,255,255,0.2);">${bus.velocidad > 1 ? Math.round(bus.velocidad) + ' km/h' : 'En parada'}</div>`,
+                            iconSize: [44, 44],
+                            iconAnchor: [22, 22]
                         });
 
                         busTrackingLayer = L.marker([lat, lng], { icon: busIcon }).addTo(map);
+
+                        // Interaction: Click to show "Stop Tracking" option
+                        busTrackingLayer.on('click', () => {
+                            showBusTrackingInfo(bus, line);
+                        });
 
                         // Slide map to follow bus smoothly
                         map.panTo([lat, lng], { animate: true, duration: 1.5 });
@@ -2817,10 +2825,72 @@
             busTrackingInterval = setInterval(updatePosition, 3000);
 
             // Stop tracking if map is clicked (optional, but good for UX)
+            // Modified: Clicking map doesn't stop tracking in Focus Mode, must click "Stop Tracking"
             map.once('click', () => {
-                if (busTrackingInterval) clearInterval(busTrackingInterval);
-                // Keep marker but stop auto-move
+                // Do nothing, keep tracking until user explicitly stops
             });
+        }
+
+        // Show Bus Tracking Info Card
+        function showBusTrackingInfo(bus, line) {
+            const previewCard = document.getElementById('stop-preview-card');
+            const previewContent = document.getElementById('preview-content');
+            const color = getLineColor(line) || '#10b981';
+
+            previewContent.innerHTML = `
+                <div style="padding: 10px;">
+                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                         <div style="display:flex; align-items:center; gap:16px;">
+                             <span style="font-size:28px; font-weight:800; color:white; background:${color}; width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">${line}</span>
+                             <div>
+                                 <div style="font-size:20px; font-weight:700;">Siguiendo Autobús</div>
+                                 <div style="font-size:15px; opacity:0.75; display:flex; align-items:center; gap:6px;">
+                                    <i data-lucide="gauge" style="width:16px; height:16px"></i> 
+                                    ${Math.round(bus.velocidad || 0)} km/h
+                                 </div>
+                             </div>
+                         </div>
+                         <button onclick="closeStopPreview()" style="background:rgba(255,255,255,0.1); border:none; padding:8px; border-radius:50%;">
+                             <i data-lucide="x" style="width:24px; height:24px; color:white"></i>
+                         </button>
+                     </div>
+                     
+                     <button onclick="stopTrackingBus()" style="width:100%; padding:16px; background:#ef4444; color:white; border:none; border-radius:16px; font-weight:700; font-size:18px; display:flex; align-items:center; justify-content:center; gap:12px; box-shadow:0 6px 20px rgba(239,68,68,0.4); transition: transform 0.1s;">
+                         <i data-lucide="stop-circle" style="width:24px; height:24px;"></i>
+                         Dejar de Fijar
+                     </button>
+                </div>
+            `;
+
+            previewCard.classList.add('visible');
+            document.querySelector('.bottom-nav').classList.add('merged');
+            lucide.createIcons();
+        }
+
+        // Stop Tracking and Restore Map
+        function stopTrackingBus() {
+            if (busTrackingInterval) {
+                clearInterval(busTrackingInterval);
+                busTrackingInterval = null;
+            }
+            if (busTrackingLayer) {
+                map.removeLayer(busTrackingLayer);
+                busTrackingLayer = null;
+            }
+            if (busRouteLayer) {
+                map.removeLayer(busRouteLayer);
+                busRouteLayer = null;
+            }
+
+            // Restore Stops
+            if (markerClusterGroup) {
+                map.addLayer(markerClusterGroup);
+            }
+
+            closeStopPreview();
+
+            // Optionally zoom out a bit to show context
+            map.setZoom(map.getZoom() - 1);
         }
 
         // Fly to Stop
