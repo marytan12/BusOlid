@@ -544,184 +544,127 @@
             transform: rotate(90deg);
         }
 
-        /* Bus Stop Popup Content - Premium Biki Style */
+        /* Bus Stop Popup Content - Summary Style */
         .stop-popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 20px 20px 24px;
-            background: transparent;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            min-height: 48px;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(123, 207, 184, 0.2);
+            background: linear-gradient(135deg, rgba(123, 207, 184, 0.1), transparent);
         }
 
         .stop-popup-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
-            color: #fff;
-            margin: 0;
-            flex: 1;
-            line-height: 1.3;
-            letter-spacing: -0.3px;
+            color: var(--color-primary-light);
+            margin-bottom: 4px;
         }
 
         .stop-popup-number {
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
             font-family: monospace;
-            display: block;
-            margin-top: 4px;
-        }
-
-        .stop-fav-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            margin-right: 48px;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
-        }
-
-        .stop-fav-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.05);
-        }
-
-        .stop-fav-btn svg {
-            width: 20px;
-            height: 20px;
         }
 
         .stop-popup-body {
-            padding: 20px;
+            padding: 15px 20px;
             max-height: 400px;
             overflow-y: auto;
         }
 
-        /* Bus Lines Grid - Premium Cards */
-        .bus-lines-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        /* Bus Line Card - Modern Design */
-        .bus-line-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        /* Summary view - show only next bus */
+        .bus-summary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(123, 207, 184, 0.15);
             border-radius: 16px;
             padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .bus-summary-header {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-            backdrop-filter: blur(4px);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
         }
 
-        .bus-line-card:hover {
-            background: rgba(255, 255, 255, 0.06);
-            transform: translateY(-4px);
+        .next-bus-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
-        /* Line type specific styles */
-        .bus-line-card.line-auvasa {
-            border-color: rgba(16, 185, 129, 0.2);
+        .bus-summary-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-primary-light);
+            font-family: 'SF Mono', monospace;
         }
 
-        .bus-line-card.line-auvasa:hover {
-            border-color: rgba(16, 185, 129, 0.5);
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+        .bus-summary-time.urgent {
+            color: var(--color-orange);
+            animation: pulse 1.5s infinite;
         }
 
-        .bus-line-card.line-red {
-            border-color: rgba(239, 68, 68, 0.2);
+        .bus-summary-destination {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 600;
+            margin-top: 4px;
         }
 
-        .bus-line-card.line-red:hover {
-            border-color: rgba(239, 68, 68, 0.5);
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
+        /* Full info view */
+        .bus-line-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(123, 207, 184, 0.15);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
         }
 
-        .bus-line-card.line-blue {
-            border-color: rgba(59, 130, 246, 0.2);
+        .bus-line-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(3px);
         }
 
-        .bus-line-card.line-blue:hover {
-            border-color: rgba(59, 130, 246, 0.5);
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
-        }
-
-        .bus-line-card.line-orange {
-            border-color: rgba(249, 115, 22, 0.2);
-        }
-
-        .bus-line-card.line-orange:hover {
-            border-color: rgba(249, 115, 22, 0.5);
-            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.15);
-        }
-
-        /* Bus Line Icon */
-        .bus-card-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+        .bus-line-header {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .bus-line-number {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            margin-bottom: 4px;
+            background: #10b981;
+            color: white;
             font-weight: 800;
             font-size: 14px;
-            color: white;
+            min-width: 42px;
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.25);
         }
 
-        .bus-line-card.line-auvasa .bus-card-icon {
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-        }
-
-        .bus-line-card.line-red .bus-card-icon {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-        }
-
-        .bus-line-card.line-blue .bus-card-icon {
-            background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
-        }
-
-        .bus-line-card.line-orange .bus-card-icon {
-            background: rgba(249, 115, 22, 0.15);
-            color: #f97316;
-        }
-
-        /* Bus Card Content */
-        .bus-card-content {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .bus-card-time {
-            font-size: 28px;
-            font-weight: 700;
+        .bus-destination {
+            font-size: 13px;
             color: #fff;
-            line-height: 1;
-            margin-bottom: 6px;
+            font-weight: 600;
         }
 
-        .bus-card-time.urgent {
+        .bus-arrival-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-primary-light);
+            font-family: 'SF Mono', monospace;
+        }
+
+        .bus-arrival-time.urgent {
             color: var(--color-orange);
             animation: pulse 1.5s infinite;
         }
@@ -738,30 +681,23 @@
             }
         }
 
-        .bus-card-label {
+        .bus-occupancy {
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .bus-card-destination {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 4px;
-            line-height: 1.3;
-        }
-
-        /* No Arrivals State */
         .no-arrivals {
             text-align: center;
             padding: 30px 20px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
             font-size: 14px;
         }
 
-        /* Favorite Button */
+        .show-more-btn,
         .favorite-btn {
             margin-top: 12px;
             width: 100%;
@@ -780,6 +716,12 @@
             font-size: 14px;
         }
 
+        .show-more-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(123, 207, 184, 0.2);
+        }
+
+        .show-more-btn:hover,
         .favorite-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(123, 207, 184, 0.4);
@@ -1206,8 +1148,8 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%) translateY(100%);
-            width: 90%;
-            max-width: 400px;
+            width: 88%;
+            max-width: 320px;
             background: linear-gradient(to top, rgba(4, 52, 36, 0.98), rgba(10, 92, 72, 0.95));
             backdrop-filter: blur(16px) saturate(150%);
             -webkit-backdrop-filter: blur(16px) saturate(150%);
@@ -1537,6 +1479,36 @@
             }
         }
 
+        // Get bus line color from official AUVASA palette
+        function getLineColor(lineNumber) {
+            const lineColors = {
+                '1': '#60B854',
+                '2': '#F2C649',
+                '3': '#D053A5',
+                '4': '#996633',
+                '5': '#37A7A9',
+                '6': '#E24B8F',
+                '7': '#772C3D',
+                '8': '#D76C21',
+                '9': '#3EA5E1',
+                '10': '#9C274D',
+                '13': '#1E498A',
+                '14': '#9A76C9',
+                '16': '#64B5F6',
+                '17': '#90BE6D',
+                '18': '#959595',
+                '19': '#D9884A',
+                'C1': '#979A7F',
+                'C2': '#3D4037',
+                '24': '#1F4690',
+                'H': '#D1222A',
+                'R': '#D1222A', // Línea Roja Arroyo
+                'A': '#3EA5E1', // Línea Azul
+                'RS': '#D76C21' // Río Shopping
+            };
+            return lineColors[lineNumber] || '#10b981'; // Default verde AUVASA
+        }
+
         // Determine marker color class based on lines
         function getMarkerColorClass(lineas) {
             if (!lineas || lineas.length === 0) return '';
@@ -1706,13 +1678,14 @@
             }
         }
 
-        // Update Preview Card with Real-time Data - Premium Biki Style
+        // Update Preview Card with Real-time Data
         function updatePreviewWithRealtime(stop, data) {
             const previewContent = document.getElementById('preview-content');
             const isFavorite = favorites.includes(stop.numero);
 
             // Collect all buses with their next arrivals
-            let busCardsHtml = '';
+            let allBusesHtml = '';
+            let nextBusSummary = null;
 
             if (data && data.lineas && data.lineas.length > 0) {
                 const busesWithArrivals = [];
@@ -1747,7 +1720,38 @@
                 // Sort by time
                 busesWithArrivals.sort((a, b) => a.minutesRemaining - b.minutesRemaining);
 
-                // Generate bus cards HTML
+                // Get next bus for summary
+                if (busesWithArrivals.length > 0) {
+                    const nextBus = busesWithArrivals[0];
+                    const urgentClass = nextBus.minutesRemaining <= 3 ? 'urgent' : '';
+
+                    let timeDisplay;
+                    if (nextBus.minutesRemaining > 30) {
+                        const futureTime = new Date(Date.now() + nextBus.minutesRemaining * 60000);
+                        timeDisplay = `${futureTime.getHours().toString().padStart(2, '0')}:${futureTime.getMinutes().toString().padStart(2, '0')}`;
+                    } else {
+                        timeDisplay = `${nextBus.minutesRemaining} min`;
+                    }
+
+                    const lineColor = getLineColor(nextBus.line);
+                    nextBusSummary = `
+                        <div class="bus-summary">
+                            <div class="bus-summary-header">
+                                <div>
+                                    <div class="next-bus-label">Próximo Bus</div>
+                                    <span class="bus-line-number" style="background: ${lineColor}">${nextBus.line}</span>
+                                </div>
+                                <div class="bus-summary-time ${urgentClass}">
+                                    ${timeDisplay}
+                                </div>
+                            </div>
+                            <div class="bus-summary-destination">${nextBus.destination}</div>
+                            ${nextBus.occupancy ? `<div class="bus-occupancy">👥 ${nextBus.occupancy}</div>` : ''}
+                        </div>
+                    `;
+                }
+
+                // Generate all buses HTML for full view
                 busesWithArrivals.forEach(bus => {
                     const urgentClass = bus.minutesRemaining <= 3 ? 'urgent' : '';
 
@@ -1756,46 +1760,40 @@
                         const futureTime = new Date(Date.now() + bus.minutesRemaining * 60000);
                         timeDisplay = `${futureTime.getHours().toString().padStart(2, '0')}:${futureTime.getMinutes().toString().padStart(2, '0')}`;
                     } else {
-                        timeDisplay = `${bus.minutesRemaining}`;
+                        timeDisplay = `${bus.minutesRemaining} min`;
                     }
 
-                    // Determinar la clase de color según el tipo de línea
-                    let lineColorClass = 'line-auvasa'; // Default AUVASA green
-                    const lineStr = bus.line.toString();
-
-                    if (lineStr === 'R' || lineStr.includes('ROJA') || lineStr.includes('ARROYO')) {
-                        lineColorClass = 'line-red';
-                    } else if (lineStr === 'A' || lineStr.includes('AZUL')) {
-                        lineColorClass = 'line-blue';
-                    } else if (lineStr === 'RS' || lineStr.includes('RIO') || lineStr.includes('SHOPPING')) {
-                        lineColorClass = 'line-orange';
-                    }
-
-                    busCardsHtml += `
-                        <div class="bus-line-card ${lineColorClass}">
-                            <div class="bus-card-icon">${bus.line}</div>
-                            <div class="bus-card-content">
-                                <div class="bus-card-time ${urgentClass}">${timeDisplay}</div>
-                                <div class="bus-card-label">${bus.minutesRemaining > 30 ? 'HORA' : 'MINUTOS'}</div>
-                                <div class="bus-card-destination">${bus.destination || 'Destino desconocido'}</div>
+                    const busLineColor = getLineColor(bus.line);
+                    allBusesHtml += `
+                        <div class="bus-line-item">
+                            <div class="bus-line-header">
+                                <div>
+                                    <span class="bus-line-number" style="background: ${busLineColor}">${bus.line}</span>
+                                </div>
+                                <div class="bus-arrival-time ${urgentClass}">
+                                    ${timeDisplay}
+                                </div>
                             </div>
+                            <div class="bus-destination">${bus.destination}</div>
+                            ${bus.occupancy ? `<div class="bus-occupancy">👥 ${bus.occupancy}</div>` : ''}
                         </div>
                     `;
                 });
+            }
 
-                if (busCardsHtml) {
-                    busCardsHtml = `<div class="bus-lines-grid">${busCardsHtml}</div>`;
-                } else {
-                    busCardsHtml = '<div class="no-arrivals">😔 No hay buses próximos</div>';
-                }
-            } else {
-                busCardsHtml = '<div class="no-arrivals">😔 No hay buses próximos</div>';
+            if (!nextBusSummary) {
+                nextBusSummary = '<div class="no-arrivals">😔 No hay buses próximos</div>';
             }
 
             const favoriteText = isFavorite ? '⭐ Quitar de favoritos' : '☆ Añadir a favoritos';
+            const showMoreButton = allBusesHtml ? '<button class="show-more-btn" onclick="toggleFullInfo()">📋 Ver todos los buses</button>' : '';
 
             const content = `
-                ${busCardsHtml}
+                ${nextBusSummary}
+                <div class="full-info" id="full-info-${stop.numero}">
+                    ${allBusesHtml}
+                </div>
+                ${showMoreButton}
                 <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" onclick="toggleFavorite('${stop.numero}')">
                     ${favoriteText}
                 </button>
