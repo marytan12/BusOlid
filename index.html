@@ -1208,7 +1208,11 @@
         }
 
         .stop-preview-card.visible {
-            transform: translateX(-50%) translateY(calc(-70px + 20px));
+            transform: translateX(-50%) translateY(-68px);
+            /* Fusion position */
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom: none;
         }
 
         .preview-header {
@@ -1264,6 +1268,10 @@
             border-top-left-radius: 0;
             border-top-right-radius: 0;
             border-top: none;
+            background: rgba(4, 52, 36, 0.98);
+            /* Match card specific green */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         /* Liquid Glass Effect */
