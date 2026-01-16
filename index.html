@@ -279,20 +279,42 @@
             width: 28px;
             height: 28px;
             border-radius: 8px;
+            /* Slightly rounded square */
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 13px;
+            /* Slightly larger text */
             position: relative;
+            /* Performance Optimization: Removed complex shadows and transitions */
+            background: #10b981;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            /* Remove expensive transition on all properties */
+            will-change: transform;
+        }
 
-            /* Default AUVASA green */
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .bus-stop-marker:active {
+            transform: scale(0.95);
+        }
+
+        /* Line specifics - Solid colors are faster */
+        .bus-stop-marker.line-red {
+            background: #D1222A;
+        }
+
+        .bus-stop-marker.line-blue {
+            background: #3EA5E1;
+        }
+
+        .bus-stop-marker.line-orange {
+            background: #D76C21;
+        }
+
+        .bus-stop-marker.line-mixed {
+            background: linear-gradient(135deg, #3EA5E1, #D1222A);
         }
 
         .bus-stop-marker::before {
@@ -712,46 +734,67 @@
             display: block;
         }
 
-        /* Bottom Navigation - Liquid Pill */
+        /* Bottom Navigation - Ultra Liquid iOS Style */
         .bottom-nav {
             position: fixed;
-            bottom: 20px;
+            bottom: 25px;
+            /* Slightly higher */
             left: 50%;
             transform: translateX(-50%) translateZ(0);
-            width: 90%;
-            max-width: 400px;
-            height: 70px;
-            border-radius: 35px;
+            width: 88%;
+            max-width: 380px;
+            height: 72px;
+            border-radius: 40px;
+            /* Super rounded */
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: space-around;
-            padding: 0 10px;
+            padding: 0 8px;
 
-            background: rgba(10, 92, 72, 0.5);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            /* Deep Glass Material */
+            background: rgba(20, 25, 30, 0.65);
+            backdrop-filter: blur(30px) saturate(220%);
+            -webkit-backdrop-filter: blur(30px) saturate(220%);
+
+            /* Inner light & crisp border */
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.5),
+                /* Deep float shadow */
+                inset 0 1px 1px rgba(255, 255, 255, 0.2),
+                /* Top rim light */
+                inset 0 -1px 20px rgba(0, 0, 0, 0.2);
+            /* Inner depth */
 
             will-change: transform, border-radius;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Liquid indicator */
+        /* Liquid indicator - Glowing Blob */
         .nav-indicator {
             position: absolute;
             top: 50%;
             transform: translateY(-50%) translateZ(0);
-            height: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            backdrop-filter: blur(8px) saturate(150%);
-            -webkit-backdrop-filter: blur(8px) saturate(150%);
+            height: 56px;
+            /* Almost full height */
+
+            /* Glowing liquid appearance */
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 32px;
+
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+
+            /* Soft glow box shadow */
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.2),
+                inset 0 0 15px rgba(255, 255, 255, 0.05);
+
             z-index: -1;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), inset 0 0 15px rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            /* Spring physics */
             will-change: transform, width, left;
         }
 
@@ -1291,21 +1334,21 @@
             display: none !important;
         }
 
-        /* Marker Cluster Styles - Custom BuSolid Style */
+        /* Marker Cluster Styles - Optimized */
         .marker-cluster-small,
         .marker-cluster-medium,
         .marker-cluster-large {
-            background: linear-gradient(135deg, rgba(123, 207, 184, 0.9), rgba(10, 92, 72, 0.95)) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 2px solid rgba(255, 255, 255, 0.3) !important;
-            box-shadow: 0 4px 16px rgba(123, 207, 184, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset !important;
+            /* Removed backdrop-filter and complex gradients */
+            background: rgba(10, 92, 72, 0.9) !important;
+            border: 2px solid rgba(255, 255, 255, 0.5) !important;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+            border-radius: 50%;
         }
 
         .marker-cluster-small div,
         .marker-cluster-medium div,
         .marker-cluster-large div {
-            background: linear-gradient(135deg, rgba(123, 207, 184, 0.95), rgba(16, 185, 129, 0.9)) !important;
+            background: transparent !important;
             color: white !important;
             font-weight: 700 !important;
             font-size: 14px !important;
@@ -1313,7 +1356,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.2);
+            /* Removed inset shadow */
         }
 
         .marker-cluster-large {
@@ -2708,7 +2751,10 @@
                 // Update liquid indicator
                 updateNavIndicator(this);
 
-                // Close all panels
+                // Close stop preview if open
+                closeStopPreview();
+
+                // Close all view panels first
                 document.querySelectorAll('.view-panel').forEach(panel => {
                     panel.classList.remove('active');
                 });
