@@ -966,6 +966,92 @@
             font-size: 14px;
         }
 
+        /* Stop Preview Card - Expands from Nav Pill */
+        .stop-preview-card {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            width: 90%;
+            max-width: 400px;
+            background: linear-gradient(to top, rgba(4, 52, 36, 0.98), rgba(10, 92, 72, 0.95));
+            backdrop-filter: blur(16px) saturate(150%);
+            -webkit-backdrop-filter: blur(16px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            border-bottom-left-radius: 35px;
+            border-bottom-right-radius: 35px;
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                border-radius 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform;
+            padding: 20px;
+            padding-bottom: 100px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .stop-preview-card.visible {
+            transform: translateX(-50%) translateY(calc(-70px + 20px));
+        }
+
+        .preview-header {
+            border-bottom: 1px solid rgba(123, 207, 184, 0.2);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-primary-light);
+            margin-bottom: 4px;
+        }
+
+        .preview-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .preview-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preview-close-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fff;
+            transform: rotate(90deg);
+        }
+
+        .preview-close-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Bottom nav merged state */
+        .bottom-nav.merged {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            border-top: none;
+        }
+
         /* Liquid Glass Effect */
         .glass-effect {
             background: var(--bg-glass);
@@ -1049,6 +1135,20 @@
                 <p>BuSolid - Tu compañero de transporte público en Valladolid.</p>
                 <p style="margin-top: 10px; font-size: 12px; opacity: 0.5;">Versión 1.0.0</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Stop Preview Card -->
+    <div class="stop-preview-card" id="stop-preview-card">
+        <button class="preview-close-btn" onclick="closeStopPreview()">
+            <i data-lucide="x"></i>
+        </button>
+        <div class="preview-header">
+            <h3 class="preview-title" id="preview-stop-name">Parada</h3>
+            <div class="preview-subtitle" id="preview-stop-number">Parada #</div>
+        </div>
+        <div id="preview-content">
+            <!-- Content injected by JS -->
         </div>
     </div>
 
@@ -1281,50 +1381,46 @@
             console.log(`Loaded ${stopMarkers.length} bus stops with clustering`);
         }
 
-        // Show Stop Info in Popup
+        // Show Stop Info in Preview Card (not popup)
         async function showStopInfo(stop) {
-            const popupContent = `
-                <div class="stop-popup-header">
-                    <div class="stop-popup-title">${stop.nombre}</div>
-                    <div class="stop-popup-number">Parada ${stop.numero}</div>
-                </div>
-                <div class="stop-popup-body">
-                    <div class="loading">
-                        <div class="loading-spinner"></div>
-                        <p>Cargando información...</p>
-                    </div>
+            const previewCard = document.getElementById('stop-preview-card');
+            const bottomNav = document.querySelector('.bottom-nav');
+            const previewStopName = document.getElementById('preview-stop-name');
+            const previewStopNumber = document.getElementById('preview-stop-number');
+            const previewContent = document.getElementById('preview-content');
+
+            // Close any open popup
+            map.closePopup();
+
+            // Update header
+            previewStopName.textContent = stop.nombre;
+            previewStopNumber.textContent = `Parada ${stop.numero}`;
+
+            // Show loading
+            previewContent.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando información...</p>
                 </div>
             `;
 
-            const popup = L.popup({
-                maxWidth: 350,
-                className: 'bus-stop-popup'
-            })
-                .setLatLng([stop.lat, stop.lng])
-                .setContent(popupContent)
-                .openOn(map);
+            // Show card and merge nav
+            previewCard.classList.add('visible');
+            bottomNav.classList.add('merged');
 
             // Load real-time data
             try {
                 const stopData = await vallaBusAPI.getStopInfo(stop.numero);
-                updatePopupWithRealtime(popup, stop, stopData);
+                updatePreviewWithRealtime(stop, stopData);
             } catch (error) {
                 console.error('Error loading stop info:', error);
-                const errorContent = `
-                    <div class="stop-popup-header">
-                        <div class="stop-popup-title">${stop.nombre}</div>
-                        <div class="stop-popup-number">Parada ${stop.numero}</div>
-                    </div>
-                    <div class="stop-popup-body">
-                        <div class="no-arrivals">No se pudo cargar la información</div>
-                    </div>
-                `;
-                popup.setContent(errorContent);
+                previewContent.innerHTML = '<div class="no-arrivals">No se pudo cargar la información</div>';
             }
         }
 
-        // Update Popup with Real-time Data - Summary + Expandable
-        function updatePopupWithRealtime(popup, stop, data) {
+        // Update Preview Card with Real-time Data
+        function updatePreviewWithRealtime(stop, data) {
+            const previewContent = document.getElementById('preview-content');
             const isFavorite = favorites.includes(stop.numero);
 
             // Collect all buses with their next arrivals
@@ -1430,24 +1526,28 @@
             const favoriteText = isFavorite ? '⭐ Quitar de favoritos' : '☆ Añadir a favoritos';
             const showMoreButton = allBusesHtml ? '<button class="show-more-btn" onclick="toggleFullInfo()">📋 Ver todos los buses</button>' : '';
 
-            const popupContent = `
-                <div class="stop-popup-header">
-                    <div class="stop-popup-title">${stop.nombre}</div>
-                    <div class="stop-popup-number">Parada ${stop.numero}</div>
+            const content = `
+                ${nextBusSummary}
+                <div class="full-info" id="full-info-${stop.numero}">
+                    ${allBusesHtml}
                 </div>
-                <div class="stop-popup-body">
-                    ${nextBusSummary}
-                    <div class="full-info" id="full-info-${stop.numero}">
-                        ${allBusesHtml}
-                    </div>
-                    ${showMoreButton}
-                    <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" onclick="toggleFavorite('${stop.numero}')">
-                        ${favoriteText}
-                    </button>
-                </div>
+                ${showMoreButton}
+                <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" onclick="toggleFavorite('${stop.numero}')">
+                    ${favoriteText}
+                </button>
             `;
 
-            popup.setContent(popupContent);
+            previewContent.innerHTML = content;
+            lucide.createIcons();
+        }
+
+        // Close Stop Preview Card
+        function closeStopPreview() {
+            const previewCard = document.getElementById('stop-preview-card');
+            const bottomNav = document.querySelector('.bottom-nav');
+
+            previewCard.classList.remove('visible');
+            bottomNav.classList.remove('merged');
         }
 
         // Toggle full info view
