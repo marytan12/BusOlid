@@ -271,50 +271,50 @@
 
         .glass-marker {
             position: relative;
-            width: 32px;
-            height: 32px;
+            width: 20px;
+            height: 20px;
         }
 
         .bus-stop-marker {
-            width: 36px;
-            height: 36px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 12px;
             background: linear-gradient(135deg, var(--color-emerald), #059669);
             border: 2px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            box-shadow: 0 3px 8px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .bus-stop-marker.no-buses {
             background: linear-gradient(135deg, var(--color-red), #dc2626);
             border-color: rgba(239, 68, 68, 0.8);
-            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            box-shadow: 0 3px 12px rgba(239, 68, 68, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
         }
 
         .bus-stop-marker.few-buses {
             background: linear-gradient(135deg, var(--color-orange), #ea580c);
             border-color: rgba(249, 115, 22, 0.8);
-            box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            box-shadow: 0 3px 12px rgba(249, 115, 22, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
         }
 
         .bus-stop-marker.favorite {
-            border: 3px solid rgba(251, 191, 36, 0.8);
-            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
-            transform: scale(1.1);
+            border: 2px solid rgba(251, 191, 36, 0.9);
+            box-shadow: 0 3px 14px rgba(251, 191, 36, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+            transform: scale(1.15);
         }
 
         .bus-stop-marker.favorite::before {
             content: '⭐';
             position: absolute;
-            top: -6px;
-            right: -6px;
-            font-size: 14px;
+            top: -4px;
+            right: -4px;
+            font-size: 10px;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
@@ -369,32 +369,76 @@
             transform: rotate(90deg);
         }
 
-        /* Bus Stop Popup Content */
+        /* Bus Stop Popup Content - Summary Style */
         .stop-popup-header {
-            padding: 20px;
+            padding: 18px 20px;
             border-bottom: 1px solid rgba(123, 207, 184, 0.2);
             background: linear-gradient(135deg, rgba(123, 207, 184, 0.1), transparent);
         }
 
         .stop-popup-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--color-primary-light);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .stop-popup-number {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-muted);
             font-family: monospace;
         }
 
         .stop-popup-body {
-            padding: 15px 20px 20px;
+            padding: 15px 20px;
             max-height: 400px;
             overflow-y: auto;
         }
 
+        /* Summary view - show only next bus */
+        .bus-summary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(123, 207, 184, 0.15);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .bus-summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .next-bus-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .bus-summary-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-primary-light);
+            font-family: 'SF Mono', monospace;
+        }
+
+        .bus-summary-time.urgent {
+            color: var(--color-orange);
+            animation: pulse 1.5s infinite;
+        }
+
+        .bus-summary-destination {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Full info view */
         .bus-line-item {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(123, 207, 184, 0.15);
@@ -423,22 +467,22 @@
             background: var(--primary-gradient);
             color: white;
             font-weight: 700;
-            font-size: 14px;
-            min-width: 36px;
-            height: 28px;
-            padding: 0 10px;
+            font-size: 13px;
+            min-width: 32px;
+            height: 24px;
+            padding: 0 8px;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(123, 207, 184, 0.3);
         }
 
         .bus-destination {
-            font-size: 14px;
+            font-size: 13px;
             color: #fff;
             font-weight: 600;
         }
 
         .bus-arrival-time {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--color-primary-light);
             font-family: 'SF Mono', monospace;
@@ -477,8 +521,9 @@
             font-size: 14px;
         }
 
+        .show-more-btn,
         .favorite-btn {
-            margin-top: 15px;
+            margin-top: 12px;
             width: 100%;
             padding: 12px;
             background: var(--primary-gradient);
@@ -492,8 +537,15 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            font-size: 14px;
         }
 
+        .show-more-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(123, 207, 184, 0.2);
+        }
+
+        .show-more-btn:hover,
         .favorite-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(123, 207, 184, 0.4);
@@ -501,6 +553,15 @@
 
         .favorite-btn.is-favorite {
             background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        /* Hide full info initially */
+        .full-info {
+            display: none;
+        }
+
+        .full-info.visible {
+            display: block;
         }
 
         /* Bottom Navigation - Liquid Pill */
@@ -1197,7 +1258,7 @@
                     icon: L.divIcon({
                         html: markerHtml,
                         className: 'custom-div-icon',
-                        iconSize: [36, 36]
+                        iconSize: [24, 24]
                     })
                 });
 
@@ -1262,16 +1323,19 @@
             }
         }
 
-        // Update Popup with Real-time Data
+        // Update Popup with Real-time Data - Summary + Expandable
         function updatePopupWithRealtime(popup, stop, data) {
             const isFavorite = favorites.includes(stop.numero);
-            let linesHtml = '';
+
+            // Collect all buses with their next arrivals
+            let allBusesHtml = '';
+            let nextBusSummary = null;
 
             if (data && data.lineas && data.lineas.length > 0) {
+                const busesWithArrivals = [];
+
                 data.lineas.forEach(line => {
                     const arrivals = line.horarios || [];
-
-                    // Find the next bus (closest future arrival)
                     const now = new Date();
                     let nextArrival = null;
                     let minDiff = Infinity;
@@ -1280,7 +1344,6 @@
                         const arrivalTime = new Date(arrival.fechaHoraLlegada);
                         const diff = arrivalTime - now;
 
-                        // Only consider future arrivals, and pick the closest one
                         if (diff >= 0 && diff < minDiff) {
                             minDiff = diff;
                             nextArrival = arrival;
@@ -1289,44 +1352,83 @@
 
                     if (nextArrival) {
                         const minutesRemaining = vallaBusAPI.parseArrivalTime(nextArrival.fechaHoraLlegada);
-                        const urgentClass = minutesRemaining <= 3 ? 'urgent' : '';
-                        const occupancy = line.realtime && line.realtime[0] ?
-                            vallaBusAPI.formatOccupancy(line.realtime[0].ocupacion) : '';
-
-                        // If more than 30 minutes, show time instead of minutes
-                        let timeDisplay;
-                        if (minutesRemaining > 30) {
-                            const arrivalTime = new Date(nextArrival.fechaHoraLlegada);
-                            const hours = arrivalTime.getHours().toString().padStart(2, '0');
-                            const mins = arrivalTime.getMinutes().toString().padStart(2, '0');
-                            timeDisplay = `${hours}:${mins}`;
-                        } else {
-                            timeDisplay = `${minutesRemaining} min`;
-                        }
-
-                        linesHtml += `
-                            <div class="bus-line-item">
-                                <div class="bus-line-header">
-                                    <div>
-                                        <span class="bus-line-number">${line.linea}</span>
-                                    </div>
-                                    <div class="bus-arrival-time ${urgentClass}">
-                                        ${timeDisplay}
-                                    </div>
-                                </div>
-                                <div class="bus-destination">${line.destino || nextArrival.destino}</div>
-                                ${occupancy ? `<div class="bus-occupancy">👥 ${occupancy}</div>` : ''}
-                            </div>
-                        `;
+                        busesWithArrivals.push({
+                            line: line.linea,
+                            destination: line.destino || nextArrival.destino,
+                            minutesRemaining,
+                            occupancy: line.realtime && line.realtime[0] ? vallaBusAPI.formatOccupancy(line.realtime[0].ocupacion) : ''
+                        });
                     }
+                });
+
+                // Sort by time
+                busesWithArrivals.sort((a, b) => a.minutesRemaining - b.minutesRemaining);
+
+                // Get next bus for summary
+                if (busesWithArrivals.length > 0) {
+                    const nextBus = busesWithArrivals[0];
+                    const urgentClass = nextBus.minutesRemaining <= 3 ? 'urgent' : '';
+
+                    let timeDisplay;
+                    if (nextBus.minutesRemaining > 30) {
+                        const futureTime = new Date(Date.now() + nextBus.minutesRemaining * 60000);
+                        timeDisplay = `${futureTime.getHours().toString().padStart(2, '0')}:${futureTime.getMinutes().toString().padStart(2, '0')}`;
+                    } else {
+                        timeDisplay = `${nextBus.minutesRemaining} min`;
+                    }
+
+                    nextBusSummary = `
+                        <div class="bus-summary">
+                            <div class="bus-summary-header">
+                                <div>
+                                    <div class="next-bus-label">Próximo Bus</div>
+                                    <span class="bus-line-number">Línea ${nextBus.line}</span>
+                                </div>
+                                <div class="bus-summary-time ${urgentClass}">
+                                    ${timeDisplay}
+                                </div>
+                            </div>
+                            <div class="bus-summary-destination">${nextBus.destination}</div>
+                            ${nextBus.occupancy ? `<div class="bus-occupancy">👥 ${nextBus.occupancy}</div>` : ''}
+                        </div>
+                    `;
+                }
+
+                // Generate all buses HTML for full view
+                busesWithArrivals.forEach(bus => {
+                    const urgentClass = bus.minutesRemaining <= 3 ? 'urgent' : '';
+
+                    let timeDisplay;
+                    if (bus.minutesRemaining > 30) {
+                        const futureTime = new Date(Date.now() + bus.minutesRemaining * 60000);
+                        timeDisplay = `${futureTime.getHours().toString().padStart(2, '0')}:${futureTime.getMinutes().toString().padStart(2, '0')}`;
+                    } else {
+                        timeDisplay = `${bus.minutesRemaining} min`;
+                    }
+
+                    allBusesHtml += `
+                        <div class="bus-line-item">
+                            <div class="bus-line-header">
+                                <div>
+                                    <span class="bus-line-number">${bus.line}</span>
+                                </div>
+                                <div class="bus-arrival-time ${urgentClass}">
+                                    ${timeDisplay}
+                                </div>
+                            </div>
+                            <div class="bus-destination">${bus.destination}</div>
+                            ${bus.occupancy ? `<div class="bus-occupancy">👥 ${bus.occupancy}</div>` : ''}
+                        </div>
+                    `;
                 });
             }
 
-            if (!linesHtml) {
-                linesHtml = '<div class="no-arrivals">😔 No hay buses próximos</div>';
+            if (!nextBusSummary) {
+                nextBusSummary = '<div class="no-arrivals">😔 No hay buses próximos</div>';
             }
 
             const favoriteText = isFavorite ? '⭐ Quitar de favoritos' : '☆ Añadir a favoritos';
+            const showMoreButton = allBusesHtml ? '<button class="show-more-btn" onclick="toggleFullInfo()">📋 Ver todos los buses</button>' : '';
 
             const popupContent = `
                 <div class="stop-popup-header">
@@ -1334,7 +1436,11 @@
                     <div class="stop-popup-number">Parada ${stop.numero}</div>
                 </div>
                 <div class="stop-popup-body">
-                    ${linesHtml}
+                    ${nextBusSummary}
+                    <div class="full-info" id="full-info-${stop.numero}">
+                        ${allBusesHtml}
+                    </div>
+                    ${showMoreButton}
                     <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" onclick="toggleFavorite('${stop.numero}')">
                         ${favoriteText}
                     </button>
@@ -1342,6 +1448,22 @@
             `;
 
             popup.setContent(popupContent);
+        }
+
+        // Toggle full info view
+        function toggleFullInfo() {
+            const fullInfoEl = document.querySelector('.full-info');
+            const btn = document.querySelector('.show-more-btn');
+
+            if (fullInfoEl && btn) {
+                if (fullInfoEl.classList.contains('visible')) {
+                    fullInfoEl.classList.remove('visible');
+                    btn.textContent = '📋 Ver todos los buses';
+                } else {
+                    fullInfoEl.classList.add('visible');
+                    btn.textContent = '📋 Ocultar';
+                }
+            }
         }
 
         // Toggle Favorite
