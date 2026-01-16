@@ -1285,6 +1285,98 @@
             transform: scale(1.1);
             transition: transform 0.2s ease;
         }
+
+        /* Search Panel Styles */
+        .search-container {
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            width: 18px;
+            height: 18px;
+            color: var(--color-primary-light);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 44px 14px 44px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(123, 207, 184, 0.2);
+            border-radius: 16px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--color-primary-light);
+            box-shadow: 0 0 0 4px rgba(123, 207, 184, 0.1),
+                0 4px 12px rgba(123, 207, 184, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-clear-btn {
+            position: absolute;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fff;
+            transform: rotate(90deg);
+        }
+
+        .search-clear-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        #searchResults {
+            margin-top: 0;
+        }
+
+        .search-no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .search-no-results svg {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 15px;
+            opacity: 0.3;
+        }
     </style>
 </head>
 
@@ -1344,6 +1436,10 @@
             <i data-lucide="star"></i>
             <span>Favoritos</span>
         </button>
+        <button class="nav-btn" data-view="search">
+            <i data-lucide="search"></i>
+            <span>Buscar</span>
+        </button>
     </nav>
 
     <!-- Nearby Stops Panel -->
@@ -1369,6 +1465,30 @@
                 <i data-lucide="star"></i>
                 <div class="empty-state-title">Sin favoritos</div>
                 <div class="empty-state-text">Añade paradas a tus favoritos desde el mapa</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Panel -->
+    <div class="view-panel" id="searchPanel">
+        <div class="panel-header">
+            <h2 class="panel-title">Buscar Parada</h2>
+        </div>
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Nombre o número de parada..."
+                    autocomplete="off" />
+                <button class="search-clear-btn" id="searchClearBtn" style="display: none;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </div>
+        <div id="searchResults" class="stops-list">
+            <div class="empty-state">
+                <i data-lucide="search"></i>
+                <div class="empty-state-title">Busca una parada</div>
+                <div class="empty-state-text">Escribe el nombre o número de la parada</div>
             </div>
         </div>
     </div>
@@ -1966,6 +2086,101 @@
             document.getElementById('favoriteStopsList').innerHTML = html;
         }
 
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchClearBtn = document.getElementById('searchClearBtn');
+        const searchResults = document.getElementById('searchResults');
+
+        // Search stops
+        function searchStops(query) {
+            if (!query || query.trim() === '') {
+                searchResults.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="search"></i>
+                        <div class="empty-state-title">Busca una parada</div>
+                        <div class="empty-state-text">Escribe el nombre o número de la parada</div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            const queryLower = query.toLowerCase().trim();
+
+            // Filter stops by name or number
+            const results = busStops.filter(stopData => {
+                const nombre = (stopData.parada?.nombre || '').toLowerCase();
+                const numero = (stopData.parada?.numero || '').toString();
+
+                return nombre.includes(queryLower) || numero.includes(queryLower);
+            }).slice(0, 50); // Limit to 50 results
+
+            if (results.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="search-no-results">
+                        <i data-lucide="search-x"></i>
+                        <div class="empty-state-title">Sin resultados</div>
+                        <div class="empty-state-text">No se encontraron paradas con "${query}"</div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            let html = '';
+            results.forEach(stopData => {
+                const stop = {
+                    numero: stopData.parada.numero,
+                    nombre: stopData.parada.nombre,
+                    lat: stopData.ubicacion.y,
+                    lng: stopData.ubicacion.x,
+                    lineas: stopData.lineas.ordinarias || []
+                };
+
+                const isFavorite = favorites.includes(stop.numero);
+                const linesText = stop.lineas.length > 0
+                    ? stop.lineas.slice(0, 5).join(', ') + (stop.lineas.length > 5 ? '...' : '')
+                    : 'Sin líneas';
+
+                html += `
+                    <div class="stop-card" onclick="flyToStop(${stop.lat}, ${stop.lng}, '${stop.numero}')">
+                        <div class="stop-card-header">
+                            <div class="stop-card-name">${stop.nombre}</div>
+                            ${isFavorite ? '<div style="color:#f59e0b">⭐</div>' : ''}
+                        </div>
+                        <div class="stop-card-lines">
+                            <span class="line-badge">Parada ${stop.numero}</span>
+                            <span style="font-size: 11px; color: var(--text-muted); margin-left: 8px;">${linesText}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            searchResults.innerHTML = html;
+        }
+
+        // Search input event listener
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value;
+
+            // Show/hide clear button
+            if (query.length > 0) {
+                searchClearBtn.style.display = 'flex';
+            } else {
+                searchClearBtn.style.display = 'none';
+            }
+
+            searchStops(query);
+        });
+
+        // Clear search
+        searchClearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchClearBtn.style.display = 'none';
+            searchStops('');
+            searchInput.focus();
+        });
+
         // Fly to Stop
         function flyToStop(lat, lng, stopId) {
             // Close panels
@@ -2013,6 +2228,12 @@
                 } else if (view === 'favorites') {
                     document.getElementById('favoritesPanel').classList.add('active');
                     loadFavorites();
+                } else if (view === 'search') {
+                    document.getElementById('searchPanel').classList.add('active');
+                    // Focus search input when panel opens
+                    setTimeout(() => {
+                        document.getElementById('searchInput').focus();
+                    }, 300);
                 }
             });
         });
