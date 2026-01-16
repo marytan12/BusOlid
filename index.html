@@ -955,7 +955,22 @@
             if (data && data.lineas && data.lineas.length > 0) {
                 data.lineas.forEach(line => {
                     const arrivals = line.horarios || [];
-                    const nextArrival = arrivals[0];
+
+                    // Find the next bus (closest future arrival)
+                    const now = new Date();
+                    let nextArrival = null;
+                    let minDiff = Infinity;
+
+                    arrivals.forEach(arrival => {
+                        const arrivalTime = new Date(arrival.fechaHoraLlegada);
+                        const diff = arrivalTime - now;
+
+                        // Only consider future arrivals, and pick the closest one
+                        if (diff >= 0 && diff < minDiff) {
+                            minDiff = diff;
+                            nextArrival = arrival;
+                        }
+                    });
 
                     if (nextArrival) {
                         const minutesRemaining = vallaBusAPI.parseArrivalTime(nextArrival.fechaHoraLlegada);
@@ -970,7 +985,7 @@
                                         <span class="bus-line-number">${line.linea}</span>
                                     </div>
                                     <div class="bus-arrival-time ${urgentClass}">
-                                        ${minutesRemaining >= 0 ? minutesRemaining + ' min' : 'Pasado'}
+                                        ${minutesRemaining} min
                                     </div>
                                 </div>
                                 <div class="bus-destination">${line.destino || nextArrival.destino}</div>
